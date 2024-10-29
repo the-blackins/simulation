@@ -1,0 +1,21 @@
+# Environment files
+.env
+.flaskenv
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Virtual environment
+venv/
+env/
+
+# Migration files
+migrations/
+
+# Database files
+*.sqlite3
+
+# System files
+.DS_Store
+Thumbs.db
