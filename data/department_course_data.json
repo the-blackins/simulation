@@ -1,0 +1,91 @@
+{
+    "Computer Science": [
+      {
+        "course_code": "CSC101",
+        "course_name": "Introduction to Programming",
+        "credits": 3
+      },
+      {
+        "course_code": "CSC201",
+        "course_name": "Data Structures",
+        "credits": 3
+      },
+      {
+        "course_code": "CSC301",
+        "course_name": "Database Systems",
+        "credits": 3
+      },
+      {
+        "course_code": "CSC401",
+        "course_name": "Software Engineering",
+        "credits": 3
+      }
+    ],
+    "Engineering": [
+      {
+        "course_code": "ENG101",
+        "course_name": "Engineering Mathematics",
+        "credits": 3
+      },
+      {
+        "course_code": "ENG201",
+        "course_name": "Circuit Theory",
+        "credits": 3
+      },
+      {
+        "course_code": "ENG301",
+        "course_name": "Control Systems",
+        "credits": 3
+      },
+      {
+        "course_code": "ENG401",
+        "course_name": "Engineering Design",
+        "credits": 4
+      }
+    ],
+    "Medicine": [
+      {
+        "course_code": "MED101",
+        "course_name": "Human Anatomy",
+        "credits": 4
+      },
+      {
+        "course_code": "MED201",
+        "course_name": "Physiology",
+        "credits": 4
+      },
+      {
+        "course_code": "MED301",
+        "course_name": "Pharmacology",
+        "credits": 3
+      },
+      {
+        "course_code": "MED401",
+        "course_name": "Clinical Medicine",
+        "credits": 5
+      }
+    ],
+    "Business Administration": [
+      {
+        "course_code": "BUS101",
+        "course_name": "Principles of Management",
+        "credits": 3
+      },
+      {
+        "course_code": "BUS201",
+        "course_name": "Financial Accounting",
+        "credits": 3
+      },
+      {
+        "course_code": "BUS301",
+        "course_name": "Marketing Management",
+        "credits": 3
+      },
+      {
+        "course_code": "BUS401",
+        "course_name": "Strategic Management",
+        "credits": 4
+      }
+    ]
+}
+  
