@@ -1,8 +1,8 @@
-
-
 from flask import Flask
 from .config import get_config
-from database.setup import db, migrate, initialize_db
+from database.setup import initialize_db
+
+
 
 def create_app():
     # Create the Flask app instance
