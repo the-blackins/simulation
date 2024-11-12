@@ -12,6 +12,7 @@ from random import uniform, random, choice
 from datetime import datetime, timedelta  
 from app.constants import Sex
 from app import create_app
+import random
 
 
 # load data from json files 
@@ -66,7 +67,9 @@ def generate_dob(min_age=17, max_age=25):
     
     # Generate a random date between start_date and end_date
     random_date = start_date + (end_date - start_date) * random.random()
-    return random_date.strftime("%Y-%m-%d")
+    
+    # Return as a Python date object instead of string
+    return random_date.date()  # Convert datetime to date object
 
 def generate_matriculation_number(university_name, department_name, year, count):
     """Generate a unique registration number for a student"""
@@ -103,8 +106,6 @@ def generate_external_factors(student_id):
         feedback_assessment=uniform(4.0, 9.0),
         family_expectations=uniform(5.0, 10.0)
     )
-
-
 def seed_universities_and_factors():
     """Seed universities and their institutional factors from JSON data"""
     try:
@@ -112,6 +113,7 @@ def seed_universities_and_factors():
         print("Clearing existing data...")
         db.session.query(InstitutionalFactors).delete()
         db.session.query(University).delete()
+        db.session.query(Department).delete()  # Added this to ensure clean state
         db.session.commit()
 
         universities_data = load_university_data()
@@ -121,93 +123,110 @@ def seed_universities_and_factors():
 
         universities = []
         departments_map = {}
+        DEPARTMENT_COURSES = load_department_course_data()
 
-        for uni_data in universities_data:
+        for uni_data in universities_data['universities']:
             university = University(
-                name=uni_data.get('name'),
-                location=uni_data.get('location')
+                name=uni_data['name'],
+                location=uni_data['location']
             )
             db.session.add(university)
-            db.session.flush()
+            db.session.flush()  # Get university.id
 
-        factor = InstitutionalFactors(
+            # Create institutional factors
+            factor = InstitutionalFactors(
                 university_id=university.id,
-                class_size_rating=uni_data['class_size'],
-                facility_rating=uni_data['facility_availability'],
-                peer_support_rating=uni_data['peer_support'],
-                academic_guidance_rating=uni_data['academic_guidance'],
-                financial_aid_rating=uni_data['financial_aid'],
-                extracurricular_rating=uni_data['extracurricular_opportunities'],
-                cultural_norms_rating=uni_data['cultural_norms'],
-                peer_influence_rating=uni_data['peer_influence']
+                class_size=uni_data['class_size'],
+                facility_availability=uni_data['facility_availability'],
+                peer_support=uni_data['peer_support'],
+                academic_guidance=uni_data['academic_guidance'],
+                financial_aid=uni_data['financial_aid'],
+                extracurricular_opportunities=uni_data['extracurricular_opportunities'],
+                cultural_norms=uni_data['cultural_norms'],
+                peer_influence=uni_data['peer_influence']
             )
-        db.session.add(factor) 
+            db.session.add(factor)
 
-        DEPARTMENT_COURSES  = load_department_course_data()
-        uni_departments = []
+            # Create departments for this specific university
+            uni_departments = []
+            for dept_name in DEPARTMENT_COURSES.keys():
+                # Make department name unique by including university name
+                unique_dept_name = f"{dept_name} - {university.name}"
+                department = Department(
+                    name=unique_dept_name,
+                    university_id=university.id
+                )
+                db.session.add(department)
+                uni_departments.append(department)
 
-        for dept_name in DEPARTMENT_COURSES.keys():
-            department = Department(
-                name = dept_name, 
-                university_id = university.id
-            )
-            db.session.add(department)
-            uni_departments.append(department)
-
-        departments_map[university.id] = uni_departments
-        universities.append(university)
-        # institutional_factors.append(factor)
+            departments_map[university.id] = uni_departments
+            universities.append(university)
 
         db.session.commit()
+        
+        # Debug information
+        print(f"Created {len(universities)} universities")
+        for uni in universities:
+            dept_count = len(departments_map.get(uni.id, []))
+            print(f"University {uni.name} (ID: {uni.id}) has {dept_count} departments")
+
         return universities, departments_map
 
     except Exception as e:
         db.session.rollback()
         print(f"Error seeding universities and factors: {str(e)}")
-        return [], {}
-
+        raise  # Re-raise the exception for debugging
 def seed_courses(departments_map):
-    courses_map = {}  # To store course references
-    all_courses = []  # List for batch insertion
-    department_courses = load_department_course_data()
+    """
+    Seed courses for each department and create a mapping of department_id to courses
+    """
+    try:
+        courses_map = {}
+        all_courses = []
+        department_courses = load_department_course_data()
 
-    # Pre-calculate all courses to insert
-    for uni_departments in departments_map.values():
-        for department in uni_departments:
-            if department.name not in department_courses:
-                print(f"No courses found for department: {department.name}")
-                continue
+        # Clear existing courses
+        db.session.query(Course).delete()
+        db.session.commit()
 
-            dept_courses = []
-            for course_data in department_courses[department.name]:
-                if len(course_data) != 3:
-                    print(f"Invalid course data for {department.name}: {course_data}")
+        for uni_departments in departments_map.values():
+            for department in uni_departments:
+                # Extract original department name (remove university suffix)
+                original_dept_name = department.name.split(' - ')[0]
+                
+                if original_dept_name not in department_courses:
+                    print(f"No courses found for department: {original_dept_name}")
                     continue
 
-                course_code, course_name, credits = course_data
-                course = Course(
-                    code=f"{course_code}_{department.id}",
-                    name=course_name,
-                    credit_unit=credits,
-                    department_id=department.id
-                )
-                dept_courses.append(course)
-                all_courses.append(course)
-            courses_map[department.id] = dept_courses
+                dept_courses = []
+                for course_data in department_courses[original_dept_name]:
+                    course = Course(
+                        code=f"{course_data['course_code']}_{department.id}",
+                        name=course_data['course_name'],
+                        credit_unit=course_data['credits'],
+                        department_id=department.id
+                    )
+                    dept_courses.append(course)
+                    all_courses.append(course)
+                
+                courses_map[department.id] = dept_courses
 
-    # Batch insert all courses
-    try:
-        # Use bulk_save_objects for better performance
-        db.session.bulk_save_objects(all_courses)
-        db.session.commit()
+        if all_courses:
+            db.session.bulk_save_objects(all_courses)
+            db.session.commit()
+            
+            print(f"Successfully seeded {len(all_courses)} courses across {len(courses_map)} departments")
+            for dept_id, courses in courses_map.items():
+                print(f"Department ID {dept_id}: {len(courses)} courses")
+
+        return courses_map
+
     except Exception as e:
         db.session.rollback()
         print(f"Error during course seeding: {str(e)}")
         raise
-    
-    return courses_map
 
-    
+
 
 def seed_student(universities, courses_map, departments_map,  num_of_students=5):
     """
@@ -218,6 +237,24 @@ def seed_student(universities, courses_map, departments_map,  num_of_students=5)
     student_count_map = {}
      # Get institutional factors for weighting
     university_weights = {}
+     # Add debug prints at the start
+    print(f"Number of universities: {len(universities)}")
+    print(f"Number of departments mapped: {len(departments_map)}")
+    print(f"Number of courses mapped: {len(courses_map)}")
+
+     # Check the structure of your maps
+    print("Department map keys:", list(departments_map.keys()))
+    print("Course map keys:", list(courses_map.keys()))
+    
+
+    
+    if not universities or not departments_map:
+        print("No universities or departments available, cannot seed students.")
+        return
+    all_students = []
+    all_internal_factors = []
+    all_external_factors = []
+    all_enrollments = []
 
     for uni in universities:
         factors = db.session.query(InstitutionalFactors).filter_by(university_id=uni.id).first()
@@ -225,10 +262,10 @@ def seed_student(universities, courses_map, departments_map,  num_of_students=5)
             print(f"No factors found for university {uni.name}")
             continue
         # Calculate a basic weight based on facilities and academic guidance
-        weight = [factors.facility_rating , factors.academic_guidance_rating ,
-                  factors.class_size_rating , factors.peer_support_rating ,
-                  factors.financial_aid_rating, factors.extracurricular_rating,
-                  factors.cultural_norms_rating, factors.peer_influence_rating] 
+        weight = [factors.facility_availability , factors.academic_guidance ,
+                  factors.class_size , factors.peer_support ,
+                  factors.financial_aid, factors.extracurricular_opportunities,
+                  factors.cultural_norms, factors.peer_influence] 
         university_weights[uni.id] = sum(weight) / len(weight)
 
 #   load student data from json file 
@@ -246,15 +283,19 @@ def seed_student(universities, courses_map, departments_map,  num_of_students=5)
             last_name = random_from_list(last_names)
             first_name = random_from_list(male_first_names if sex == Sex.M else female_first_names)
             name = f'{first_name} {last_name}'
-            email = f'{first_name}{last_name}@gmail.com'.lower()
+            email = f'{first_name}.{last_name}@gmail.com'.lower()
             dob = generate_dob()
             phone_number = generate_phone_number()
 
             university = selected_uni
-            department = choice(departments_map.get(university.id, []))
-            if not department:
-                print(f"No department found for university: {university.name}")
+            
+
+            available_departments = departments_map.get(university.id, [])
+            if not available_departments:
+                print(f"No departments available for university {university.name} (ID: {university.id})")
                 continue
+            
+            department = choice(available_departments)
 
             dept_key = (university.id, department.id)
             student_count_map[dept_key] = student_count_map.get(dept_key, 0) + 1
@@ -268,26 +309,60 @@ def seed_student(universities, courses_map, departments_map,  num_of_students=5)
                 university_id=university.id, department_id=department.id, level = None, 
                 gpa = None
             )
-            db.session.add(student)
-            db.session.flush()
+            all_students.append(student)
+
 
             internal_factors = generate_internal_factors(student.id)
+            all_internal_factors.append(internal_factors)
+
             external_factors = generate_external_factors(student.id)
-            db.session.add(internal_factors)
-            db.session.add(external_factors)
+            all_external_factors.append(external_factors)
+            
+            
 
-            for course in courses_map.get(department.id, []):
-                enrollment = StudentCourse(student_id=student.id, course_id=course.id)
-                db.session.add(enrollment)
+            available_courses = courses_map.get(department.id, [])
+            if not available_courses:
+                print(f"No courses available for department {department.name} (ID: {department.id})")
+                continue
+            for course in available_courses:
+                enrollment = StudentCourse(
+                    student_id=student.id,
+                    course_id=course.id,
+                    grade=None
+                )
+                all_enrollments.append(enrollment)
+            
 
-            if _ % 100 == 0:
-                db.session.commit()
-
+            if len(all_students) % 100 == 0:
+                try:
+                    db.session.bulk_save_objects(all_students)
+                    db.session.bulk_save_objects(all_internal_factors)
+                    db.session.bulk_save_objects(all_external_factors)
+                    db.session.bulk_save_objects(all_enrollments)
+                    db.session.commit()
+                    all_students = []
+                    all_internal_factors = []
+                    all_external_factors = []
+                    all_enrollments = []
+                except Exception as e:
+                    db.session.rollback()
+                    print(f"Error during student seeding: {str(e)}")
+                    raise
         except Exception as e:
             db.session.rollback()
             print(f"Error seeding student {_}: {str(e)}")
-
-    db.session.commit()
+    
+    if all_students:
+        try:
+            db.session.bulk_save_objects(all_students)
+            db.session.bulk_save_objects(all_internal_factors)
+            db.session.bulk_save_objects(all_external_factors)
+            db.session.bulk_save_objects(all_enrollments)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error during student seeding: {str(e)}")
+            raise
 
 def main():
     app = create_app()
@@ -319,7 +394,7 @@ def main():
         courses_map = seed_courses(departments_map)
         
         print("Seeding students with their factors and course enrollments...")
-        seed_student(universities, departments_map, courses_map)
+        seed_student(universities, courses_map, departments_map )
         
         print("Database seeding completed!")
 

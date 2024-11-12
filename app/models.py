@@ -63,9 +63,9 @@ class Student(db.Model):
     matric_number = db.Column(db.String(15), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     phone_number = db.Column(db.String(20), nullable=True)
-    date_of_birth = db.Column(Date, nullable=True)
+    date_of_birth = db.Column(db.Date, nullable=True)
     gender = db.Column(db.String(10), nullable=False)
-    level = db.Column(db.Integer, nullable=False)
+    level = db.Column(db.Integer, nullable=False, default = 100)
     gpa = db.Column(db.Float, nullable=True)
     
     department_id = db.Column(db.Integer, db.ForeignKey('departments.id'), nullable=False)
