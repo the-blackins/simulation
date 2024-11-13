@@ -1,7 +1,10 @@
 from flask import Flask
 from .config import get_config
 from database.setup import initialize_db
+from .views.result_view import form_bp
+from flask_cors import CORS
 
+cors = CORS()
 
 
 def create_app():
@@ -13,9 +16,11 @@ def create_app():
 
     # Initialize database and migrations
     initialize_db(app)
-
+    cors.init_app(app)
+    
     # Register blueprints (if any)
-    # Example: app.register_blueprint(your_blueprint)
+    # Register the blueprint
+    app.register_blueprint(form_bp)
 
     # Handle errors (404 example)
     @app.errorhandler(404)

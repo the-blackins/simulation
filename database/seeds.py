@@ -20,8 +20,6 @@ from random import uniform, random, choice
 from datetime import datetime
 from app.constants import Sex
 from app import create_app
-import random
-
 
 def seed_universities_and_factors():
     """Seed universities and their institutional factors from JSON data"""
@@ -93,6 +91,7 @@ def seed_universities_and_factors():
         db.session.rollback()
         print(f"Error seeding universities and factors: {str(e)}")
         raise  # Re-raise the exception for debugging
+    
 def seed_courses(departments_map):
     """
     Seed courses for each department and create a mapping of department_id to courses
