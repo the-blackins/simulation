@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}
+<title>Simluation Configuration </title>
+{% endblock %}
+
+{% block content %}
+
+<head>
+</head>
+<body>
+    <div class="container">
+        <div class="form-card">
+            <h1 class="form-title">Simulation Configuration</h1>
+            <form id="simulationForm">
+                <div class="form-group">
+                    <label for="numStudents">Number of Students</label>
+                    <input 
+                        type="range" 
+                        class="form-control" 
+                        id="numStudents" 
+                        name="numStudents"
+                        min="1" 
+                        max="100" 
+                        value="50"
+                        oninput="updateStudentCount(this.value)"
+                    >
+                    <div class="range-info">
+                        <span>1</span>
+                        <span id="studentCount">50</span>
+                        <span>100</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="numSimulations">Number of Simultaneous Simulations</label>
+                    <select class="form-control" id="numSimulations" name="numSimulations">
+                        <option value="1">1 Simulation</option>
+                        <option value="2">2 Simulations</option>
+                        <option value="3">3 Simulations</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-primary">Start Simulation</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
