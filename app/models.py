@@ -89,9 +89,8 @@ class StudentCourse(db.Model):
     __tablename__ = 'student_courses'
 
     id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False)
-    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
-    grade = db.Column(db.String(2), nullable=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=True)
    
 #    timestamp 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
