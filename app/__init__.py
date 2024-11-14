@@ -1,7 +1,7 @@
 from flask import Flask
 from .config import get_config
 from database.setup import initialize_db
-from .views.result_view import form_bp
+from .views.form_view import form_bp
 from flask_cors import CORS
 
 cors = CORS()

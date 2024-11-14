@@ -3,8 +3,27 @@ from sqlalchemy import Date
 from datetime import datetime
 
 
+class Simulation(db.Model):
+    __tablename__ = 'simulations'
+    
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    num_students = db.Column(db.Integer, nullable=False)
+    num_simulations = db.Column(db.Integer, nullable=False)
+    final_level = db.Column(db.Integer, nullable=False)
+    status = db.Column(db.String(50), default='pending')  # Default status is 'pending'
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)  # Automatically set when created
 
-# Base tables 
+    def __init__(self, num_students, num_simulations, final_level, status='pending'):
+        self.num_students = num_students
+        self.num_simulations = num_simulations
+        self.final_level = final_level
+        self.status = status 
+        self.created_at = datetime.utcnow()  # Set the creation time explicitly if needed
+
+    def __repr__(self):
+        return f"<Simulation(id={self.id}, num_students={self.num_students}, num_simulations={self.num_simulations}, final_level = {self.final_level}, status={self.status}, created_at={self.created_at})>"
+    
+    
 class University(db.Model):
     __tablename__ = 'universities'
 
@@ -29,7 +48,6 @@ class University(db.Model):
 #     university_id = db.Column(db.Integer, db.ForeignKey('universities.id'))
     
 #     university = db.relationship('University', backref='faculties')
-
 
 class Department(db.Model):
     __tablename__ = 'departments'
