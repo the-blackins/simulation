@@ -8,20 +8,19 @@ from app.utils import(
     random_from_list
 )
 
-from data_generation import(
+from database.data_generation import(
     generate_phone_number, generate_dob, 
     generate_matriculation_number, generate_internal_factors,
     generate_external_factors
 )
-from json_loader import(
+from database.json_loader import(
     load_department_course_data, load_student_data, load_university_data
 )
 from random import uniform, random, choice
 from datetime import datetime
 from app.constants import Sex
-from app import create_app
 
-def seed_universities_and_factors():
+def seed_universities_and_factors(selected_universities):
     """Seed universities and their institutional factors from JSON data"""
     try:
         # Clear existing data
@@ -41,44 +40,45 @@ def seed_universities_and_factors():
         DEPARTMENT_COURSES = load_department_course_data()
 
         for uni_data in universities_data['universities']:
-            university = University(
-                name=uni_data['name'],
-                location=uni_data['location']
-            )
-            db.session.add(university)
-            db.session.flush()  # Get university.id
-
-            # Create institutional factors
-            factor = InstitutionalFactors(
-                university_id=university.id,
-                class_size=uni_data['class_size'],
-                facility_availability=uni_data['facility_availability'],
-                peer_support=uni_data['peer_support'],
-                academic_guidance=uni_data['academic_guidance'],
-                financial_aid=uni_data['financial_aid'],
-                extracurricular_opportunities=uni_data['extracurricular_opportunities'],
-                cultural_norms=uni_data['cultural_norms'],
-                peer_influence=uni_data['peer_influence']
-            )
-            db.session.add(factor)
-
-            # Create departments for this specific university
-            uni_departments = []
-            for dept_name in DEPARTMENT_COURSES.keys():
-                # Make department name unique by including university name
-                unique_dept_name = f"{dept_name} - {university.name}"
-                department = Department(
-                    name=unique_dept_name,
-                    university_id=university.id
+            if uni_data['name'] in selected_universities:
+                university = University(
+                    name=uni_data['name'],
+                    location=uni_data['location']
                 )
-                db.session.add(department)
-                uni_departments.append(department)
+                db.session.add(university)
+                db.session.flush()  # Get university.id
 
-            departments_map[university.id] = uni_departments
-            universities.append(university)
+                # Create institutional factors
+                factor = InstitutionalFactors(
+                    university_id=university.id,
+                    class_size=uni_data['class_size'],
+                    facility_availability=uni_data['facility_availability'],
+                    peer_support=uni_data['peer_support'],
+                    academic_guidance=uni_data['academic_guidance'],
+                    financial_aid=uni_data['financial_aid'],
+                    extracurricular_opportunities=uni_data['extracurricular_opportunities'],
+                    cultural_norms=uni_data['cultural_norms'],
+                    peer_influence=uni_data['peer_influence']
+                )
+                db.session.add(factor)
+
+                # Create departments for this specific university
+                uni_departments = []
+                for dept_name in DEPARTMENT_COURSES.keys():
+                    # Make department name unique by including university name
+                    unique_dept_name = f"{dept_name} - {university.name}"
+                    department = Department(
+                        name=unique_dept_name,
+                        university_id=university.id
+                    )
+                    db.session.add(department)
+                    uni_departments.append(department)
+
+                departments_map[university.id] = uni_departments
+                universities.append(university)
 
         db.session.commit()
-        
+
         # Debug information
         print(f"Created {len(universities)} universities")
         for uni in universities:
@@ -91,7 +91,8 @@ def seed_universities_and_factors():
         db.session.rollback()
         print(f"Error seeding universities and factors: {str(e)}")
         raise  # Re-raise the exception for debugging
-    
+
+
 def seed_courses(departments_map):
     """
     Seed courses for each department and create a mapping of department_id to courses
@@ -144,7 +145,7 @@ def seed_courses(departments_map):
 
 
 
-def seed_student(universities, courses_map, departments_map,  num_of_students=5):
+def seed_student(universities, courses_map, departments_map,  num_of_students):
     """
     Seed students and distribute them across universities,
     taking into account university characteristics
@@ -281,7 +282,27 @@ def seed_student(universities, courses_map, departments_map,  num_of_students=5)
             print(f"Error during student seeding: {str(e)}")
             raise
 
+def seed_data(selected_universities, num_students):
+    # Clear existing data
+    # ...
+
+    # Seed universities and departments
+    print("Seeding selected universities and departments...")
+    universities, departments_map = seed_universities_and_factors(selected_universities)
+
+    # Seed courses
+    print("Seeding courses...")
+    courses_map = seed_courses(departments_map)
+
+    # Seed students with their factors and course enrollments
+    print(f"Seeding {num_students} students with their factors and course enrollments...")
+    seed_student(universities, courses_map, departments_map, num_students)
+
+    print("Database seeding completed!")
+    
+
 def main():
+    from app import create_app
     app = create_app()
 
     """Main function to run all seeders"""
@@ -304,16 +325,7 @@ def main():
         db.session.commit()
     
         # Seed in order of dependencies
-        print("Seeding universities and departments...")
-        universities, departments_map = seed_universities_and_factors()
-        
-        print("Seeding courses...")
-        courses_map = seed_courses(departments_map)
-        
-        print("Seeding students with their factors and course enrollments...")
-        seed_student(universities, courses_map, departments_map )
-        
-        print("Database seeding completed!")
+        seed_data()
 
 if __name__ == '__main__':
     main()

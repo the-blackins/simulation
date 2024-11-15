@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}
+<title>Simulation Configuration</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="form-card">
+        <h1 class="form-title">Simulation Configuration</h1>
+        <form id="simulationForm">
+            <div class="form-group">
+                <label for="numStudents">Number of Students</label>
+                <input type="range" class="form-control" id="numStudents" name="numStudents"
+                    min="1000" max="5000" value="2500" oninput="updateStudentCount(this.value)">
+                <div class="range-info">
+                    <span>1000</span>
+                    <span id="studentCount">2500</span>
+                    <span>5000</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="numSimulations">Number of Simultaneous Simulations</label>
+                <select class="form-control" id="numSimulations" name="numSimulations" onchange="updateUniversitySelections()">
+                    <option value="1">1 Simulation</option>
+                    <option value="2">2 Simulations</option>
+                    <option value="3">3 Simulations</option>
+                    <option value="4">4 Simulations</option>
+                    <option value="5">5 Simulations</option>
+                    <option value="6">6 Simulations</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="universitiesContainer">
+                <label>Select Universities</label>
+                <div id="universitySelections" class="university-checkboxes">
+                    <!-- Checkboxes will be dynamically added here -->
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="value-display">Level: <span id="levelValue">100</span></div>
+                <input type="range" min="100" max="600" step="100" value="100" class="slider" id="levelSlider">
+                <div class="tick-marks">
+                    <span>100</span>
+                    <span>200</span>
+                    <span>300</span>
+                    <span>400</span>
+                    <span>500</span>
+                    <span>600</span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary">Start Simulation</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

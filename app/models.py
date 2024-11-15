@@ -11,6 +11,7 @@ class Simulation(db.Model):
     num_simulations = db.Column(db.Integer, nullable=False)
     final_level = db.Column(db.Integer, nullable=False)
     status = db.Column(db.String(50), default='pending')  # Default status is 'pending'
+    universities = db.Column(db.String(50), default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)  # Automatically set when created
 
     def __init__(self, num_students, num_simulations, final_level, status='pending'):

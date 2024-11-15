@@ -2,6 +2,7 @@ from flask import Flask
 from .config import get_config
 from database.setup import initialize_db
 from .views.form_view import form_bp
+from .views.seeding_view import seeding_blueprint
 from flask_cors import CORS
 
 cors = CORS()
@@ -22,6 +23,7 @@ def create_app():
     # Register the blueprint
     app.register_blueprint(form_bp)
 
+    app.register_blueprint(seeding_blueprint)
     # Handle errors (404 example)
     @app.errorhandler(404)
     def not_found(error):

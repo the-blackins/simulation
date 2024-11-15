@@ -1,62 +1,60 @@
 {% extends "base.html" %}
 
-{% block title %}
-<title>Simluation Configuration </title>
-{% endblock %}
-
 {% block content %}
-
-<head>
-</head>
-<body>
-    <div class="container">
-        <div class="form-card">
-            <h1 class="form-title">Simulation Configuration</h1>
-            <form id="simulationForm">
-                <div class="form-group">
-                    <label for="numStudents">Number of Students</label>
-                    <input 
-                        type="range" 
-                        class="form-control" 
-                        id="numStudents" 
-                        name="numStudents"
-                        min="1000" 
-                        max="5000" 
-                        value="2500"
-                        oninput="updateStudentCount(this.value)"
-                    >
-                    <div class="range-info">
-                        <span>1000</span>
-                        <span id="studentCount">2500</span>
-                        <span>5000</span>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="numSimulations">Number of Simultaneous Simulations</label>
-                    <select class="form-control" id="numSimulations" name="numSimulations">
-                        <option value="1">1 Simulation</option>
-                        <option value="2">2 Simulations</option>
-                        <option value="3">3 Simulations</option>
-                    </select>
-                </div>
-
-
-                <div class="form-group">
-                    <div class="value-display">Level: <span id="levelValue">100</span></div>
-                        <input type="range" min="100" max="600" step="100" value="100" class="slider" id="levelSlider">
-                            <div class="tick-marks">
-                                <span>100</span>
-                                <span>200</span>
-                                <span>300</span>
-                                <span>400</span>
-                                <span>500</span>
-                                <span>600</span>
-                            </div>
-                    </div>
-
-                <button type="submit" class="btn-primary">Start Simulation</button>
-            </form>
+    <div class="hero">
+        <div class="container">
+            <h1>Welcome to the Nigerian Tertiary Education Simulation</h1>
+            <p>Explore the dynamics of academic performance in Nigerian universities through our interactive simulation platform.</p>
+            <a href="#simulate" class="cta-button">Start Simulation</a>
         </div>
     </div>
+
+    <section class="features">
+        <div class="container">
+            <h2 style="text-align: center; margin-bottom: 40px;">What You Can Expect</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <img src="/api/placeholder/30/30" alt="Student Profiles">
+                    </div>
+                    <h3>Realistic Student Profiles</h3>
+                    <p>Each student is generated with diverse attributes reflective of Nigeria's educational system.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <img src="/api/placeholder/30/30" alt="Academic Journey">
+                    </div>
+                    <h3>Academic Journey Simulation</h3>
+                    <p>Track and analyze how students' performance evolves, influenced by various factors including faculty, department, and university.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <img src="/api/placeholder/30/30" alt="Faculties">
+                    </div>
+                    <h3>Faculties and Departments</h3>
+                    <p>The simulation covers a broad range of academic disciplines, allowing you to explore different faculties and departments.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="how-it-works">
+        <div class="container">
+            <h2 style="text-align: center; margin-bottom: 40px;">How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <h3>1. Input Parameters</h3>
+                    <p>Customize the simulation by adjusting factors that influence student performance.</p>
+                </div>
+                <div class="step">
+                    <h3>2. Run the Simulation</h3>
+                    <p>Watch as student profiles are generated and academic outcomes unfold based on real-world patterns in Nigerian tertiary education.</p>
+                </div>
+                <div class="step">
+                    <h3>3. Analyze Results</h3>
+                    <p>Dive into this educational experience and discover the complexities of student life in Nigerian universities!</p>
+                </div>
+            </div>
+        </div>
+    </section>
 {% endblock %}
