@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, Blueprint, current_app
+from flask import Flask, render_template, request, jsonify, Blueprint
 from app.models import Simulation
 from datetime import datetime
 from database.setup import db
@@ -28,7 +28,7 @@ def submit_simulation():
                 'message': 'No data provided'
             }), 400
             
-        required_fields = ['numStudents', 'numSimulations', 'finalLevel']
+        required_fields = ['numStudents', 'numSimulations', 'finalLevel', 'universities']
         for field in required_fields:
             if field not in data:
                 return jsonify({
@@ -38,12 +38,13 @@ def submit_simulation():
 
         # Print the values before creating the object
         print(f"Creating simulation with: students={data['numStudents']}, "
-              f"simulations={data['numSimulations']}, level={data['finalLevel']}")
+              f"simulations={data['numSimulations']}, level={data['finalLevel']},  universities={data['universities']}")
 
         new_simulation = Simulation(
             num_students=int(data['numStudents']),  # Ensure integers
             num_simulations=int(data['numSimulations']),
             final_level=int(data['finalLevel']),
+            universities = list(data['universities']),
             status='pending'  # Remove created_at as it's handled by default
         )
 
@@ -60,6 +61,7 @@ def submit_simulation():
                     'num_students': new_simulation.num_students,
                     'num_simulations': new_simulation.num_simulations,
                     'final_level': new_simulation.final_level,
+                    'universities': new_simulation.universities, 
                     'status': new_simulation.status,
                     'created_at': new_simulation.created_at.isoformat()
                 }
