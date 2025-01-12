@@ -1,9 +1,10 @@
-from random import uniform
 import random
 from datetime import datetime, timedelta
-from app.models import( 
-     InternalFactors, ExternalFactors
-)
+from random import uniform
+
+from app.models import ExternalFactors, InternalFactors
+
+
 # generator functions 
 def generate_phone_number():
     prefixes = ["080", "081", "090", "070"]
@@ -40,10 +41,10 @@ def generate_matriculation_number(university_name, department_name, year, count)
     dept_code = ''.join(word[0] for word in department_name.split())
     return f"{uni_code}/{dept_code}/{year}/{count:04d}"
 
-def generate_internal_factors(student_id):
+def generate_internal_factors(student):
     """Generate realistic internal factors for a student"""
-    return InternalFactors(
-        student_id=student_id,
+    Internal_factors = InternalFactors(
+        student_id=student.id,
         goal_setting=uniform(5.0, 10.0),
         personal_ambition=uniform(5.0, 10.0),
         interest_subject=uniform(5.0, 10.0),
@@ -54,12 +55,13 @@ def generate_internal_factors(student_id):
         focus_study=uniform(4.0, 9.0),
         self_assessment=uniform(4.0, 9.0)
     )
+    return Internal_factors
 
 
-def generate_external_factors(student_id):
+def generate_external_factors(student):
     """Generate realistic external factors for a student"""
-    return ExternalFactors(
-        student_id=student_id,
+    external_factors = ExternalFactors(
+        student_id=student.id,
         financial_stability=uniform(4.0, 9.0),
         access_to_resources=uniform(4.0, 9.0),
         family_support=uniform(5.0, 10.0),
@@ -71,3 +73,4 @@ def generate_external_factors(student_id):
         feedback_assessment=uniform(4.0, 9.0),
         family_expectations=uniform(5.0, 10.0)
     )
+    return external_factors

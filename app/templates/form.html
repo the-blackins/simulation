@@ -6,10 +6,10 @@
 {% endblock %}
 
 {% block content %}
-<div class="container">
+<div id="container">
     <div class="form-card">
         <h1 class="form-title">Simulation Configuration</h1>
-        <form id="simulationForm">
+        <form id="simulationForm" action="/api/submit-simulation" method="POST">
             <div class="form-group">
                 <label for="numStudents">Number of Students</label>
                 <input type="range" class="form-control" id="numStudents" name="numStudents"
@@ -57,4 +57,6 @@
         </form>
     </div>
 </div>
+
 {% endblock %}
+

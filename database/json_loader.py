@@ -1,4 +1,6 @@
 import json
+
+
 # load data from json files 
 def load_university_data():
     try:
