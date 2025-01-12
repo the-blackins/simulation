@@ -10,7 +10,7 @@ body {
     align-items: center;
 }
 
-.container {
+#container {
     width: 100%;
     max-width: 480px;
     padding: 2rem;

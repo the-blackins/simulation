@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Simulation{% endblock %}
+
+{% block head %}
+{{ super() }}
+<!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/simulation.css') }}"> -->
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h2>Simulation Controls</h2>
+            <div class="btn-group mb-3">
+                <button id="startBtn" class="btn btn-primary">Start Simulation</button>
+                <button id="pauseBtn" class="btn btn-warning" disabled>Pause</button>
+                <button id="resetBtn" class="btn btn-danger">Reset</button>
+            </div>
+            <p id="status">Status: Stopped</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <canvas id="performanceChart"></canvas>
+        </div>
+        <div class="col-md-6">
+            <canvas id="factorsChart"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}

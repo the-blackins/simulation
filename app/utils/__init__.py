@@ -1,12 +1,6 @@
 import secrets
-from typing import (
-    Dict,
-    Optional,
-    List,
-    TypeVar,
-)
 from enum import Enum
-
+from typing import Dict, List, Optional, TypeVar
 
 S = TypeVar('S', bound=Enum)
 
