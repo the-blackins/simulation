@@ -10,6 +10,7 @@ class University(db.Model):
     location = db.Column(db.String(100), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    simulations = db.relationship('Simulation', backref='university', lazy=True)
 
     __table_args__ = {'extend_existing': True}
 
@@ -86,11 +87,13 @@ class StudentCourse(db.Model):
         {'extend_existing': True}
     )
 
+
 class InternalFactors(db.Model):
     __tablename__ = 'internal_factors'
 
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey('students.id', name='fk_internal_factors_student'), nullable=False)
+    simulation_id = db.Column(db.Integer, db.ForeignKey('simulation.id'), primary_key=True)
     goal_setting = db.Column(db.Float)
     personal_ambition = db.Column(db.Float)
     interest_subject = db.Column(db.Float)
@@ -102,7 +105,6 @@ class InternalFactors(db.Model):
     self_assessment = db.Column(db.Float)
 
     student = db.relationship('Student', back_populates='internal_factors', single_parent=True)
-
     __table_args__ = (
         UniqueConstraint('student_id', name='uq_internal_factors_student_id'),
         {'extend_existing': True}
@@ -123,8 +125,9 @@ class ExternalFactors(db.Model):
     curriculum_relevance = db.Column(db.Float)
     teaching_quality = db.Column(db.Float)
     feedback_assessment = db.Column(db.Float)
-
+    
     student = db.relationship('Student', back_populates='external_factors', single_parent=True)
+    simulation_id = db.Column(db.Integer, db.ForeignKey('simulation.id'), nullable=False)
 
     __table_args__ = (
         UniqueConstraint('student_id', name='uq_external_factors_student_id'),
@@ -136,8 +139,9 @@ class InstitutionalFactors(db.Model):
     __tablename__ = 'institutional_factors'
 
     id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('students.id', name='fk_institutional_factors_student'), nullable=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('students.id', name='fk_institutional_factors_student'), nullable=False)
     university_id = db.Column(db.Integer, db.ForeignKey('universities.id', name='fk_institutional_factors_university'), nullable=False)
+    simulation_id = db.Column(db.Integer, db.ForeignKey('simulation.id'), primary_key=True)
     class_size = db.Column(db.Float)
     facility_availability = db.Column(db.Float)
     peer_support = db.Column(db.Float)
@@ -152,7 +156,30 @@ class InstitutionalFactors(db.Model):
 
     __table_args__ = {'extend_existing': True}
 
-class TestResult(db.Model):
+
+class Simulation(db.Model):
+    __tablename__ = 'simulation'
+    id = db.Column(db.Integer, primary_key=True)
+    university_id = db.Column(db.Integer, db.ForeignKey('universities.id'), nullable=False)
+    start_time = db.Column(db.DateTime, nullable=False)
+    end_time = db.Column(db.DateTime)
+    status = db.Column(db.String(20), nullable=False, default="Pending")  # Pending, Running, Completed
+    results = db.relationship('SimulationResult', backref='simulation', lazy=True)
+
+
+    institutional_factors = db.relationship('InstitutionalFactors', backref='simulation', uselist=False)
+    students = db.relationship('Student', secondary='student_simulation', backref='simulations')  # Many-to-many
+    __table_args__ = {'extend_existing': True}             
+
+
+student_simulation = db.Table('student_simulation',
+    db.Column('student_id', db.Integer, db.ForeignKey('students.id'), primary_key=True),
+    db.Column('simulation_id', db.Integer, db.ForeignKey('simulation.id'), primary_key=True), 
+    extend_existing = True
+       
+) 
+
+class TestResult(db.Model): 
     __tablename__ = 'test_results'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -160,5 +187,19 @@ class TestResult(db.Model):
     score = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     test_type = db.Column(db.String(50), nullable=True)
+
+    __table_args__ = {'extend_existing': True}
+
+
+class SimulationResult(db.Model):
+    __tablename__ = 'simulation_result'
+
+    id = db.Column(db.Integer, primary_key=True)
+    simulation_id = db.Column(db.Integer, db.ForeignKey('simulation.id'), nullable=False)
+    graph_type = db.Column(db.String(50), nullable=False)  # e.g., "Student Performance" or "Factor Influence"
+    metric_name = db.Column(db.String(100), nullable=False)
+    value = db.Column(db.Float, nullable=False)
+
+    # simulation = db.relationship('Simulation', backref=db.backref('simulation_result', lazy=True))
 
     __table_args__ = {'extend_existing': True}
