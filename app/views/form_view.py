@@ -1,13 +1,13 @@
 import json
 import traceback
 from sqlalchemy.orm.collections import InstrumentedList
-
+from datetime import datetime
 
 from flask import (Blueprint, jsonify, redirect, render_template, request,
                    url_for)
 
 from app.services.simulation_service import SimulationEngine
-
+from app.services.simulation_config import create_simulations
 
 form_bp = Blueprint('form', __name__)
 home_bp = Blueprint('home', __name__)
@@ -65,20 +65,36 @@ def simulation_page():
     except Exception as e:
         # app.logger.error(f"Error rendering simulation page: {str(e)}")
         return str(e), 500
+
 @simulate_bp.route('/api/run_step', methods=['POST'])
 def run_simulation_step():
     from app import db
     from app.models import (ExternalFactors, InstitutionalFactors, Student,University,
-                            TestResult)
+                            TestResult, Simulation)
+    """run the simualtion based on university base"""
     try:
         # Query all students
         students = Student.query.all()
         universities = University.query.all()
        
+        for university in universities:  # Iterate through University objects
+            simulation = Simulation(
+                university_id=university.id,  # Use the university's ID
+                start_time=datetime.now(),
+                status="Pending"
+            )
+            
+            db.session.add(simulation)
+            db.session.commit()
+            
+            institutional_factors = InstitutionalFactors(
+                simulation_id=simulation.id
+            )
+            db.session.add(institutional_factors)
+            db.session.commit()
         results = []
-        
         for student in students:
-            try:
+            try: 
                 university = next((u for u in universities if u.id == student.university_id), None)
                 if not university:
                     print(f"No matching university found for student {student.id}")
