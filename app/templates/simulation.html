@@ -4,7 +4,8 @@
 
 {% block head %}
 {{ super() }}
-<!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/simulation.css') }}"> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/simulation.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -21,13 +22,10 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-6">
-            <canvas id="performanceChart"></canvas>
-        </div>
-        <div class="col-md-6">
-            <canvas id="factorsChart"></canvas>
-        </div>
+    <div id="container">
+        
     </div>
 </div>
+<script src="{{ url_for('static', type='module' ,filename='js/simulation.js') }}"></script>
+
 {% endblock %}
