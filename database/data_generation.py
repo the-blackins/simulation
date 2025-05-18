@@ -43,8 +43,8 @@ def generate_matriculation_number(university_name, department_name, year, count)
 
 def generate_internal_factors(student):
     """Generate realistic internal factors for a student"""
-    Internal_factors = InternalFactors(
-        student_id=student.id,
+    student.internal_factors = InternalFactors(
+        
         goal_setting=uniform(5.0, 10.0),
         personal_ambition=uniform(5.0, 10.0),
         interest_subject=uniform(5.0, 10.0),
@@ -55,13 +55,14 @@ def generate_internal_factors(student):
         focus_study=uniform(4.0, 9.0),
         self_assessment=uniform(4.0, 9.0)
     )
-    return Internal_factors
-
+    internal_factors = student.internal_factors
+    
+    return internal_factors
 
 def generate_external_factors(student):
     """Generate realistic external factors for a student"""
-    external_factors = ExternalFactors(
-        student_id=student.id,
+    student.external_factors = ExternalFactors(
+        
         financial_stability=uniform(4.0, 9.0),
         access_to_resources=uniform(4.0, 9.0),
         family_support=uniform(5.0, 10.0),
@@ -73,4 +74,5 @@ def generate_external_factors(student):
         feedback_assessment=uniform(4.0, 9.0),
         family_expectations=uniform(5.0, 10.0)
     )
+    external_factors = student.external_factors
     return external_factors

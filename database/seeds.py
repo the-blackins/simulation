@@ -2,7 +2,6 @@ from datetime import datetime
 from random import choice, uniform
 import random
 from sqlite3 import IntegrityError
-
 from app import db
 from app.constants import Sex
 from app.utils import random_from_enum, random_from_list
@@ -13,39 +12,58 @@ from database.json_loader import (load_department_course_data,
                                   load_student_data, load_university_data)
 
 
-def seed_simulation(selected_universities):
-    from app.models import Simulation, InstitutionalFactors
-    try:
-    
-        for university in selected_universities:
-            simulation = Simulation(
-                university_id = university.id, 
-                start_time = datetime.now(),
-                status= "Running"
-            )
-            db.session.add(simulation)
-            db.session.commit()
 
-        # Create factors and associate via the relationship
-        factor = InstitutionalFactors()
-        simulation.institutional_factors.append(factor)  # Auto-sets simulation_id
+def seed_simulation(universities):
+    from app.models import Simulation, InstitutionalFactors, University
+    
+    try:
+        def random_walk(base_value, step_size=0.5):
+            """Generate a new value using random walk."""
+            step = random.uniform(-step_size, step_size)
+            new_value = base_value + step
+            # Ensure the value stays within a realistic range (e.g., 0 to 10)
+            return max(0, min(10, new_value))
+        
+        simulations= []
+        
+        for university in universities:
+            with db.session.no_autoflush:
+                simulation = Simulation( 
+                    university_id = university.id, 
+                    start_time = datetime.now(),
+                    status= "inactive"
+                )
+
+
+                simulation.institutional_factors = InstitutionalFactors( 
+                    class_size=university.class_size,
+                    facility_availability= university.facility_availability,
+                    peer_support= university.peer_support,
+                    academic_guidance= university.academic_guidance,
+                    financial_aid= university.financial_aid,
+                    extracurricular_opportunities= university.extracurricular_opportunities,
+                    cultural_norms= university.cultural_norms,
+                    peer_influence= university.peer_influence
+
+                )
+                simulations.append(simulation)
+                
+        db.session.add_all(simulations)                  
         db.session.commit()
+
     except Exception as e:
         db.session.rollback()
         print(f"Error creating simulation: {str(e)}")
         raise 
         
-
+    
 def seed_universities_and_factors(selected_universities):
     from app.models import Department, InstitutionalFactors, University
-    """Seed universities and their institutional factors from JSON data"""
+    """Seed universities and their institutional uni from JSON data"""
     try:
         # Clear existing data
         print("Clearing existing data...")
-        db.session.query(InstitutionalFactors).delete()
-        db.session.query(University).delete()
-        db.session.query(Department).delete()  # Added this to ensure clean state
-        db.session.commit()
+       
 
         universities_data = load_university_data()
         if not universities_data:
@@ -55,37 +73,27 @@ def seed_universities_and_factors(selected_universities):
         universities = []
         departments_map = {}
         DEPARTMENT_COURSES = load_department_course_data()
-        def random_walk(base_value, step_size=0.5):
-            """Generate a new value using random walk."""
-            step = random.uniform(-step_size, step_size)
-            new_value = base_value + step
-            # Ensure the value stays within a realistic range (e.g., 0 to 10)
-            return max(0, min(10, new_value))
-
 
         for uni_data in universities_data['universities']:
             if uni_data['name'] in selected_universities:
                 university = University(
                     name=uni_data['name'],
-                    location=uni_data['location']
+                    location=uni_data['location'],
+
+                # Create institutional uni
+                    class_size=uni_data['class_size'],
+                    facility_availability=uni_data['facility_availability'],
+                    peer_support=uni_data['peer_support'],
+                    academic_guidance=uni_data['academic_guidance'],
+                    financial_aid=uni_data['financial_aid'],
+                    extracurricular_opportunities=uni_data['extracurricular_opportunities'],
+                    cultural_norms=uni_data['cultural_norms'],
+                    peer_influence=uni_data['peer_influence']
                 )
+                
+
                 db.session.add(university)
                 db.session.flush()  # Get university.id
-
-                # Create institutional factors
-                factor = InstitutionalFactors(
-                    university_id=university.id,
-                    class_size=random_walk(uni_data['class_size']),
-                    facility_availability=random_walk(uni_data['facility_availability']),
-                    peer_support=random_walk(uni_data['peer_support']),
-                    academic_guidance=random_walk(uni_data['academic_guidance']),
-                    financial_aid=random_walk(uni_data['financial_aid']),
-                    extracurricular_opportunities=random_walk(uni_data['extracurricular_opportunities']),
-                    cultural_norms=random_walk(uni_data['cultural_norms']),
-                    peer_influence=random_walk(uni_data['peer_influence'])
-                )
-                db.session.add(factor)
-
                 # Create departments for this specific university
                 uni_departments = []
                 for dept_name in DEPARTMENT_COURSES.keys():
@@ -100,8 +108,11 @@ def seed_universities_and_factors(selected_universities):
 
                 departments_map[university.id] = uni_departments
                 universities.append(university)
+               
 
         db.session.commit()
+
+            
 
         # Debug information
         print(f"Created {len(universities)} universities")
@@ -113,7 +124,7 @@ def seed_universities_and_factors(selected_universities):
 
     except Exception as e:
         db.session.rollback()
-        print(f"Error seeding universities and factors: {str(e)}")
+        print(f"Error seeding universities and uni: {str(e)}")
         raise  # Re-raise the exception for debugging
 
 
@@ -128,9 +139,9 @@ def seed_courses(departments_map):
         all_courses = []
         department_courses = load_department_course_data()
 
-        # Clear existing courses
-        db.session.query(Course).delete()
-        db.session.commit()
+        # # Clear existing courses
+        # db.session.query(Course).delete()
+        # db.session.commit()
 
         for uni_departments in departments_map.values():
             for department in uni_departments:
@@ -170,52 +181,61 @@ def seed_courses(departments_map):
         raise
 
 def seed_student(universities, courses_map, departments_map, num_of_students):
-    from app.models import InstitutionalFactors, Student, StudentCourse
+    from app.models import InstitutionalFactors, Student, StudentCourse, University, Simulation
     """
-    Seed students and distribute them across universities,
-    taking into account university characteristics
+    populate students and distribute them across universities
     """
-    current_year = datetime.now().year
-    student_count_map = {}
-    department_counters = {}
-    
-    # Get institutional factors for weighting
-    university_weights = {}
-    print(f"Number of universities: {len(universities)}")
-    print(f"Number of departments mapped: {len(departments_map)}")
-    print(f"Number of courses mapped: {len(courses_map)}")
-    
-    if not universities or not departments_map:
-        print("No universities or departments available, cannot seed students.")
-        return
+    try:
+        student_count_map = {}
         
-    # Calculate university weights
-    for uni in universities:
-        factors = db.session.query(InstitutionalFactors).filter_by(university_id=uni.id).first()
-        if not factors:
-            print(f"No factors found for university {uni.name}")
-            continue
-        weight = [
-            factors.facility_availability, factors.academic_guidance,
-            factors.class_size, factors.peer_support,
-            factors.financial_aid, factors.extracurricular_opportunities,
-            factors.cultural_norms, factors.peer_influence
-        ]
-        university_weights[uni.id] = sum(weight) / len(weight)
+        
+        # Get institutional uni for weighting
+        university_weights = {}
+        print(f"Number of universities: {len(universities)}")
+        print(f"Number of departments mapped: {len(departments_map)}")
+        print(f"Number of courses mapped: {len(courses_map)}")
 
-    # Load student data from JSON file
-    students_names = load_student_data()
-    last_names = students_names["last_names"]
-    male_first_names = students_names["male_first_names"]
-    female_first_names = students_names["female_first_names"]
+        
+        if not universities or not departments_map:
+            print("No universities or departments available, cannot seed students.")
+            
+    
+        # Calculate university weights
+        for uni in universities:
+            with db.session.no_autoflush:
+                sim = db.session.query(Simulation).filter_by(university_id=uni.id).first()
+                factors = sim.institutional_factors
 
-    students_processed = 0
-    max_retries = 3  # Maximum number of retries for each student
+            
+            weight = [
+                factors.facility_availability, factors.academic_guidance,
+                factors.class_size, factors.peer_support,
+                factors.financial_aid, factors.extracurricular_opportunities,
+                factors.cultural_norms, factors.peer_influence
+            ]
+            university_weights[uni.id] = sum(weight) / len(weight)
 
-    while students_processed < num_of_students:
-        retry_count = 0
-        while retry_count < max_retries:
-            try:
+        # Load student data from JSON file
+        students_names = load_student_data()
+        last_names = students_names["last_names"]
+        male_first_names = students_names["male_first_names"]
+        female_first_names = students_names["female_first_names"]
+
+        with db.session.no_autoflush:
+            simulations = {
+                uni.id: Simulation.query.filter_by(university_id=uni.id).first()
+                for uni in universities
+            }
+
+        try:
+            student_arr = []
+            internal_factor_arr = []
+            external_factor_arr = []
+            courses_enrolled_arr = []
+            
+
+            for _ in range(num_of_students):
+
                 selected_uni = max(universities, key=lambda u: university_weights.get(u.id, 0) * uniform(0.8, 1.2))
                 sex = random_from_enum(Sex)
                 last_name = random_from_list(last_names)
@@ -235,8 +255,10 @@ def seed_student(universities, courses_map, departments_map, num_of_students):
                 dept_key = (university.id, department.id)
                 student_count_map[dept_key] = student_count_map.get(dept_key, 0) + 1
                 
+                simulation = simulations[selected_uni.id]
                 student = Student(
                     name=name,
+                    simulation_id = simulation.id, 
                     phone_number=phone_number,
                     date_of_birth=dob,
                     gender=sex.value,
@@ -245,16 +267,22 @@ def seed_student(universities, courses_map, departments_map, num_of_students):
                     level=100,
                     gpa=None
                 )
-                db.session.add(student)
-                db.session.flush()  # This will assign an ID to the student
+                student_arr.append(student)
+
+
+                # db.session.flush()  # This will assign an ID to the student
                 
                 # Create related records
-                internal_factors = generate_internal_factors(student)
-                db.session.add(internal_factors)
-
                 external_factors = generate_external_factors(student)
-                db.session.add(external_factors)
+                external_factor_arr.append(external_factors)
+                
+                internal_factors = generate_internal_factors(student)
+                internal_factor_arr.append(internal_factors)
+                # db.session.add(internal_factors)
 
+
+                # db.session.add(external_factors)            
+                
                 available_courses = courses_map.get(department.id, [])
                 if not available_courses:
                     print(f"No courses available for department {department.name} (ID: {department.id})")
@@ -265,28 +293,30 @@ def seed_student(universities, courses_map, departments_map, num_of_students):
                         student_id=student.id,
                         course_id=course.id
                     )
-                    db.session.add(enrollment)
+            
+                    # db.session.add(enrollment)
+                    courses_enrolled_arr.append(enrollment)
 
-                db.session.commit()
-                students_processed += 1
-                break  # Successfully created student, exit retry loop
 
-            except IntegrityError as e:
-                db.session.rollback()
-                print(f"Integrity error while creating student: {str(e)}")
-                retry_count += 1
-                continue
-            except Exception as e:
-                db.session.rollback()
-                print(f"Unexpected error while creating student: {str(e)}")
-                retry_count += 1
-                continue
+            db.session.add_all(student_arr)
+            
+            db.session.add_all(internal_factor_arr)
+            db.session.add_all(external_factor_arr)
+            # db.session.add_all(courses_enrolled_arr)
+            db.session.commit()
 
-        if retry_count >= max_retries:
-            print(f"Failed to create student after {max_retries} attempts, skipping...")
-            continue
 
-    print(f"Successfully processed {students_processed} students.")
+        
+        except Exception as e:
+            db.session.rollback()
+            print(f"Unexpected error while creating student: {str(e)}")
+            retry_count += 1
+    
+        return student_arr
+
+    except Exception as e:
+        print(f"error processing students: {str(e)}")
+
 
 def seed_data(selected_universities, num_students):
     # Clear existing data
@@ -298,31 +328,26 @@ def seed_data(selected_universities, num_students):
     print("Seeding selected universities and departments...")
     universities, departments_map = seed_universities_and_factors(selected_universities)
 
+    print("creating simulation...")
+    seed_simulation(universities)
     # Seed courses
     print("Seeding courses...")
     courses_map = seed_courses(departments_map)
 
-    # creating simulation
-    print("creating simulation...")
-    seed_simulation(selected_universities)
     
-    # Seed students with their factors and course enrollments
-    print(f"Seeding {num_students} students with their factors and course enrollments...")
+    # Seed students with their uni and course enrollments
+    print(f"Seeding {num_students} students with their uni and course enrollments...")
     seed_student(universities, courses_map, departments_map, num_students)
-
-    # print("Database seeding completed!")
-    
 
 def main():
     from app import create_app
     app = create_app()
-    from app.models import (Course, Department, ExternalFactors,
-                            InstitutionalFactors, InternalFactors, Student,
-                            StudentCourse, University)
+    
     """Main function to run all seeders"""
     
     # Clear existing data
     with app.app_context():
+        # Populate in order of dependencies
         print("Starting database seeding...")
         print("Clearing existing data...")
         db.drop_all()
@@ -330,7 +355,6 @@ def main():
         seed_data()
         print("Database population completed")
     
-        # Seed in order of dependencies
 
 if __name__ == '__main__':
     main()

@@ -1,77 +1,111 @@
-import random
+
 from sqlalchemy.orm.collections import InstrumentedList
+from .simulation_engine import SimulationEngine
+from flask import jsonify
 
-class SimulationEngine:
-    def __init__(self):
-        self.BASE_SCORE = 70
-        self.RANDOM_VARIATION = 5
-        self.FACTOR_WEIGHTS = {
-            'external': 0.30,
-            'internal': 0.40,
-            'institutional': 0.30
-        }
 
-    def random_walk(self, current_value):
-        """Apply random walk to factor values within bounds"""
-        delta = random.uniform(-0.1, 0.1)
-        new_value = current_value + delta
-        return max(0.5, min(1.5, new_value))
+class SimulationService:
+   """Running sinmulation and its services"""
+   
+   def __init__(self):
+      from app.models import Simulation, Student
+      self.sim_eng = SimulationEngine()
+      self.sim_model = Simulation.query.all()
+      
 
-    def update_factors(self, factors):
-        """Update all factors using random walk"""
-        from app.models import InternalFactors, ExternalFactors, InstitutionalFactors
-        
-        # If factors is a list/collection, process the first item
-        if isinstance(factors, InstrumentedList):
+
+   def chart_instance(self):
+      available_simulations = self.sim_model
+      try:
+         chart_arr = []
+         if available_simulations:
+            for simulation_data in available_simulations:
+               dictionary = {
+                     "simulation_id" : simulation_data.id, 
+                     "university": simulation_data.university.name,
+                     "factors":{
+                        "Internal_Factor": [], 
+                        "External_Factor": [], 
+                        "Institutional_Factor": []
+                     }
+               }
+               
+               chart_arr.append(dictionary)
+
+         return chart_arr
+
+      except Exception as e:
+         return f'An error occured {e}'
+      
+
+   def process_factors(self, factors, factor_type, identifier):
+      """Process factors if they are an InstrumentedList."""
+      try:
+         if isinstance(factors, InstrumentedList):
+            print("factor is an instance")
             if factors:
-                factors = factors[0]  # Take the first item
+               for factor in factors:
+                  self.sim_eng.update_factors(factor)
+                  print(f"{factor} processing")
             else:
-                return  # Empty list, nothing to process
-        
-        # Process single factor object
-        if isinstance(factors, (InternalFactors, ExternalFactors, InstitutionalFactors)):
-            for column in factors.__table__.columns:
-                if column.name not in ['id', 'student_id', 'university_id']:
-                    current_value = getattr(factors, column.name)
-                    setattr(factors, column.name, self.random_walk(current_value))
-        else:
-            print(f"Warning: {factors} is not a valid SQLAlchemy model instance.")
+               print(f"No {factor_type} found for {identifier}")
+         else:
+            # Handle single object case
+            self.sim_eng.update_factors(factors)
+      except Exception as e:
+         print(f"Error processing simulation {str(e)}")
 
-    def calculate_factor_impact(self, factors):
-        """Calculate the weighted impact of a set of factors"""
-        # If factors is a list/collection, use the first item
-        if isinstance(factors, InstrumentedList):
-            if factors:
-                factors = factors[0]  # Take the first item
-            else:
-                return 1.0  # Return default impact for empty list
-        
-        # Process single factor object
-        total = 0
-        count = 0
-        for column in factors.__table__.columns:
-            if column.name not in ['id', 'student_id', 'university_id']:
-                total += getattr(factors, column.name)
-                count += 1
-        return total / count if count > 0 else 1.0
 
-    def calculate_performance(self, student):
-        """Calculate student performance based on all factors"""
-        # Handle potential None values or empty lists
-        external_impact = (self.calculate_factor_impact(student.external_factors) 
-                         if student.external_factors else 1.0)
-        internal_impact = (self.calculate_factor_impact(student.internal_factors) 
-                         if student.internal_factors else 1.0)
-        institutional_impact = (self.calculate_factor_impact(student.university.institutional_factors) 
-                              if student.university and student.university.institutional_factors else 1.0)
+   def process_simulation(self):
+      """ process students in each simulation"""
+      from app.models import InstitutionalFactors
+      try:
+         result = []
+         simulations = self.sim_model         
+         for simulation in simulations:
+            students = simulation.students
+            for student in students:
+               if simulation.id == student.university_id:
+                  try:            
+                     # Processing each type of factors
+                     university_factors = simulation.institutional_factors
+                     self.process_factors(university_factors, "institutional factors", f"university {simulation.university_id}")
+                     # print(university_factors)
 
-        weighted_impact = (
-            external_impact * self.FACTOR_WEIGHTS['external'] +
-            internal_impact * self.FACTOR_WEIGHTS['internal'] +
-            institutional_impact * self.FACTOR_WEIGHTS['institutional']
-        )
+                     external_factors = student.external_factors
+                     self.process_factors(external_factors, "external factors", f"student {student.id}")
+                     # print(external_factors)
 
-        random_variation = random.uniform(-self.RANDOM_VARIATION, self.RANDOM_VARIATION)
-        final_score = self.BASE_SCORE * weighted_impact + random_variation
+                     internal_factors = student.internal_factors
+                     self.process_factors(internal_factors, "internal factors", f"student {student.id}")
+                     # print(internal_factors)
 
-        return max(0, min(100, final_score))
+                     if not (student.external_factors and student.internal_factors and simulation.university_id):
+                        print(f"Missing required data for student {student.id}")
+                     
+                     # Uncomment when ready
+                     score = self.sim_eng.calculate_performance(student)
+
+                     result.append({
+                        'simulation_id': simulation.id, 
+                        'student_id': student.id, 
+                        # 'test': 1
+                        'score': score
+                     })
+                  except Exception as e:
+                     print(e)
+                     # Consider adding to result with error status
+                     result.append({
+                        'simulation_id': simulation.id,
+                        'student_id': student.id,
+                        'error': str(e)
+                     })
+               else:
+                  print(f"No matching simulation found for student {student.id}")
+         
+         
+         return {'status':'success' , 'result': result}
+         
+      except Exception as e:
+         print(f"Error processingg simulation {str(e)}")
+         return jsonify({'status': 'error', 'message': str(e)})

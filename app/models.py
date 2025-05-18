@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy import Date, UniqueConstraint
 from app import db
-
+import uuid
 class University(db.Model):
     __tablename__ = 'universities'
 
@@ -12,18 +12,27 @@ class University(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     simulations = db.relationship('Simulation', backref='university', lazy=True)
 
+    class_size=db.Column(db.Float, nullable = False)
+    facility_availability=db.Column(db.Float, nullable = False)
+    peer_support=db.Column(db.Float, nullable = False)
+    academic_guidance=db.Column(db.Float, nullable = False)
+    financial_aid=db.Column(db.Float, nullable = False)
+    extracurricular_opportunities=db.Column(db.Float, nullable = False)
+    cultural_norms=db.Column(db.Float, nullable = False)
+    peer_influence=db.Column(db.Float, nullable = False)
+
     __table_args__ = {'extend_existing': True}
 
     # relationships
     students = db.relationship('Student', backref='university', lazy=True)
     departments = db.relationship('Department', backref='university', lazy=True)
-    institutional_factors = db.relationship('InstitutionalFactors', back_populates='university', cascade='all, delete-orphan')
+    # institutional_factors = db.relationship('InstitutionalFactors', back_populates='university', cascade='all, delete-orphan')
 
 class Department(db.Model):
     __tablename__ = 'departments'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), unique=True, nullable=False)
+    name = db.Column(db.String(100), unique= True, nullable=False)
     university_id = db.Column(db.Integer, db.ForeignKey('universities.id', name='fk_department_university'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -48,21 +57,21 @@ class Student(db.Model):
     __tablename__ = 'students'
 
     id = db.Column(db.Integer, primary_key=True)
+    simulation_id = db.Column(db.Integer, db.ForeignKey("simulation.id"), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     phone_number = db.Column(db.String(20), nullable=True)
     date_of_birth = db.Column(db.Date, nullable=True)
     gender = db.Column(db.String(10), nullable=False)
     level = db.Column(db.Integer, nullable=False, default=100)
     gpa = db.Column(db.Float, nullable=True)
-
     department_id = db.Column(db.Integer, db.ForeignKey('departments.id', name='fk_student_department'), nullable=False)
     university_id = db.Column(db.Integer, db.ForeignKey('universities.id', name='fk_student_university'), nullable=False)
 
+    simulation = db.relationship('Simulation', back_populates='students')
     test_results = db.relationship('TestResult', backref='related_student', lazy=True)
     enrolled_courses = db.relationship('StudentCourse', backref='student', lazy=True)
-    internal_factors = db.relationship('InternalFactors', back_populates='student', uselist=False, cascade='all, delete-orphan')
-    external_factors = db.relationship('ExternalFactors', back_populates='student', uselist=False, cascade='all, delete-orphan')
-    institutional_factors = db.relationship('InstitutionalFactors', back_populates='student', cascade='all, delete-orphan')
+    internal_factors = db.relationship('InternalFactors', back_populates='students', uselist=False, cascade='all, delete-orphan')
+    external_factors = db.relationship('ExternalFactors', back_populates='students', uselist=False, cascade='all, delete-orphan')
 
     def __iter__(self):
         for attr, value in self.__dict__.items():
@@ -93,7 +102,7 @@ class InternalFactors(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey('students.id', name='fk_internal_factors_student'), nullable=False)
-    simulation_id = db.Column(db.Integer, db.ForeignKey('simulation.id'), primary_key=True)
+    # simulation_id = db.Column(db.Integer, db.ForeignKey('simulation.id'), primary_key=True, nullable= True)
     goal_setting = db.Column(db.Float)
     personal_ambition = db.Column(db.Float)
     interest_subject = db.Column(db.Float)
@@ -104,7 +113,7 @@ class InternalFactors(db.Model):
     focus_study = db.Column(db.Float)
     self_assessment = db.Column(db.Float)
 
-    student = db.relationship('Student', back_populates='internal_factors', single_parent=True)
+    students = db.relationship('Student', back_populates='internal_factors', single_parent=True)
     __table_args__ = (
         UniqueConstraint('student_id', name='uq_internal_factors_student_id'),
         {'extend_existing': True}
@@ -126,8 +135,8 @@ class ExternalFactors(db.Model):
     teaching_quality = db.Column(db.Float)
     feedback_assessment = db.Column(db.Float)
     
-    student = db.relationship('Student', back_populates='external_factors', single_parent=True)
-    simulation_id = db.Column(db.Integer, db.ForeignKey('simulation.id'), nullable=False)
+    students = db.relationship('Student', back_populates='external_factors', single_parent=True)
+    simulation_id = db.Column(db.Integer, db.ForeignKey('simulation.id'), nullable= True)
 
     __table_args__ = (
         UniqueConstraint('student_id', name='uq_external_factors_student_id'),
@@ -139,9 +148,7 @@ class InstitutionalFactors(db.Model):
     __tablename__ = 'institutional_factors'
 
     id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('students.id', name='fk_institutional_factors_student'), nullable=False)
-    university_id = db.Column(db.Integer, db.ForeignKey('universities.id', name='fk_institutional_factors_university'), nullable=False)
-    simulation_id = db.Column(db.Integer, db.ForeignKey('simulation.id'), primary_key=True)
+    simulation_id = db.Column(db.Integer, db.ForeignKey('simulation.id'))
     class_size = db.Column(db.Float)
     facility_availability = db.Column(db.Float)
     peer_support = db.Column(db.Float)
@@ -149,11 +156,10 @@ class InstitutionalFactors(db.Model):
     financial_aid = db.Column(db.Float)
     extracurricular_opportunities = db.Column(db.Float)
     cultural_norms = db.Column(db.Float)
-    peer_influence = db.Column(db.Float)
+    peer_influence = db.Column(db.Float)         
 
-    student = db.relationship('Student', back_populates='institutional_factors')
-    university = db.relationship('University', back_populates='institutional_factors')
-
+    # simulation = db.relationship('Simulation', back_populates = 'institutional_factors', uselist = False)                                                                                                                     #   
+    simulation = db.relationship('Simulation', back_populates='institutional_factors')
     __table_args__ = {'extend_existing': True}
 
 
@@ -164,20 +170,17 @@ class Simulation(db.Model):
     start_time = db.Column(db.DateTime, nullable=False)
     end_time = db.Column(db.DateTime)
     status = db.Column(db.String(20), nullable=False, default="Pending")  # Pending, Running, Completed
+
+# relationships 
     results = db.relationship('SimulationResult', backref='simulation', lazy=True)
+    # institutional_factors = db.relationship('InstitutionalFactors', back_populates ='simulation', lazy= True)
+    institutional_factors = db.relationship('InstitutionalFactors', back_populates='simulation', uselist = False, cascade='all, delete-orphan'  )
 
-
-    institutional_factors = db.relationship('InstitutionalFactors', backref='simulation', uselist=False)
-    students = db.relationship('Student', secondary='student_simulation', backref='simulations')  # Many-to-many
+    students = db.relationship('Student',  back_populates='simulation', lazy=True)
     __table_args__ = {'extend_existing': True}             
 
 
-student_simulation = db.Table('student_simulation',
-    db.Column('student_id', db.Integer, db.ForeignKey('students.id'), primary_key=True),
-    db.Column('simulation_id', db.Integer, db.ForeignKey('simulation.id'), primary_key=True), 
-    extend_existing = True
-       
-) 
+
 
 class TestResult(db.Model): 
     __tablename__ = 'test_results'

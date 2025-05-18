@@ -7,7 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 from .config import get_config
 # from database.setup import initialize_db
-from .views.form_view import form_bp, home_bp, simulate_bp
+from .views.views import form_bp, home_bp, simulate_bp
 
 db = SQLAlchemy()
 cors = CORS()
