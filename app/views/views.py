@@ -39,7 +39,7 @@ def submit_simulation_form():
             if field not in data:
                 return jsonify({'status': 'error', 'message': f'Missing required field: {field}'}), 400
         
-        from database.seeds import seed_data  # Import directly since it's used
+        from database_population.seeds import seed_data  # Import directly since it's used
 
         # Seed data with universities and student count
         seed_data(data['universities'], data['numStudents'])
