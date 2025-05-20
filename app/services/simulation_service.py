@@ -42,16 +42,15 @@ class SimulationService:
       """Process factors if they are an InstrumentedList."""
       try:
          if isinstance(factors, InstrumentedList):
-            print("factor is an instance")
             if factors:
                for factor in factors:
-                  self.sim_eng.update_factors(factor)
+                  self.sim_eng.update_single_factor(factor)
                   print(f"{factor} processing")
             else:
                print(f"No {factor_type} found for {identifier}")
          else:
             # Handle single object case
-            self.sim_eng.update_factors(factors)
+            self.sim_eng.update_single_factor(factors)
       except Exception as e:
          print(f"Error processing simulation {str(e)}")
 
@@ -93,7 +92,7 @@ class SimulationService:
                         'score': score
                      })
                   except Exception as e:
-                     print(e)
+                     raise e 
                      # Consider adding to result with error status
                      result.append({
                         'simulation_id': simulation.id,

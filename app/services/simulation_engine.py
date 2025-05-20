@@ -18,41 +18,26 @@ class SimulationEngine:
         new_value = current_value + delta
         return max(0.5, min(1.5, new_value))
 
-    def update_factors(self, factors):
-        """Update all factors using random walk"""
+    def update_single_factor(self, factors):
+        from app import db
 
         from app.models import InternalFactors, ExternalFactors, InstitutionalFactors
         try:
-            # If factors is a list/collection, process the first item
-            if isinstance(factors, InstrumentedList):
-                if factors:
-                    factors = factors[0]  # Take the first item
-                else:
-                    return  # Empty list, nothing to process
-                
-            
+            EXCLUDED_COLUMNS =['id', 'student_id', 'university_id', 'simulation_id']
             # Process single factor object
             if isinstance(factors, (InternalFactors, ExternalFactors, InstitutionalFactors)):
                 for column in factors.__table__.columns:
-                    if column.name not in ['id', 'student_id', 'university_id']:
+                    if column.name not in EXCLUDED_COLUMNS:
                         current_value = getattr(factors, column.name)
                         setattr(factors, column.name, self.random_walk(current_value))
             else:
                 print(f"Warning: {factors} is not a valid SQLAlchemy model instance.")
-        except Exception as e:
-            return f" error updating factor {e}"
-    def process_factors(self, factors, factor_type, identifier):
-            """Process factors if they are an InstrumentedList."""
-            if isinstance(factors, InstrumentedList):
-                if factors:
-                    for factor in factors:
-                       self.update_factors(factor)
-                else:
-                    print(f"No {factor_type} found for {identifier}")
-            else:
-                # Handle single object case
-               self.update_factors(factors)
 
+        except Exception as e:
+            db.session.rollback()
+            raise f"Error when processing factors: {str(e)}"
+        
+    
     def calculate_factor_impact(self, factors):
         """Calculate the weighted impact of a set of factors"""
         # If factors is a list/collection, use the first item
@@ -69,7 +54,9 @@ class SimulationEngine:
             if column.name not in ['id', 'student_id', 'university_id', 'simulation_id']:
                 total += getattr(factors, column.name)
                 count += 1
+        
         return total / count if count > 0 else 1.0
+    
     """utilize this function to calculate the average facotor influence for each student
     """
 
