@@ -1,13 +1,13 @@
 """ memory state of the in-memory models"""
 
-from loader import load_initial_data
-from model_representation import SimulationState
-from app.models import InstitutionalFactors, InternalFactors, ExternalFactors
+from app.services.loader import load_initial_data
+from app.services.model_representation import SimulationState
 
 initial_data= load_initial_data()
 simulation_state = SimulationState()
 
 def create_memory_state(db_objects):
+    from app.models import InstitutionalFactors, InternalFactors, ExternalFactors
 
     """Process db_objects and return a SimulationState instance."""
     try:
