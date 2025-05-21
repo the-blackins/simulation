@@ -1,8 +1,8 @@
 """Queries and loads data from the database"""
 
-from app.models import  InstitutionalFactors, Student
 from sqlalchemy.orm import joinedload
 def load_initial_data():
+    from app.models import  InstitutionalFactors, Student
     from app import db
 
     try:
