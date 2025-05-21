@@ -35,7 +35,7 @@ class SimulationService:
          return chart_arr
 
       except Exception as e:
-         return f'An error occured {e}'
+         raise   RuntimeError( f'An error occured {e}') 
       
 
    def process_factors(self, factors, factor_type, identifier):
@@ -52,7 +52,8 @@ class SimulationService:
             # Handle single object case
             self.sim_eng.update_single_factor(factors)
       except Exception as e:
-         print(f"Error processing simulation {str(e)}")
+         raise RuntimeError(f"Error processing factors {str(e)}" )
+
 
 
    def process_simulation(self):
@@ -92,8 +93,8 @@ class SimulationService:
                         'score': score
                      })
                   except Exception as e:
-                     raise e 
-                     # Consider adding to result with error status
+                     # raise RuntimeError( e)
+                     # error status.
                      result.append({
                         'simulation_id': simulation.id,
                         'student_id': student.id,
@@ -106,5 +107,5 @@ class SimulationService:
          return {'status':'success' , 'result': result}
          
       except Exception as e:
-         print(f"Error processingg simulation {str(e)}")
-         return jsonify({'status': 'error', 'message': str(e)})
+         # return jsonify({'status': 'error', 'message': str(e)})
+         raise RuntimeError(f"Error processingg simulation {str(e)}")

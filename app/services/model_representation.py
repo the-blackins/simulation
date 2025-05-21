@@ -46,6 +46,7 @@ class MemInstitutionalFactor:
 
 @dataclass 
 class SimulationState:
+    # simulation id of which these tables are associated to 
     mem_internal_factors: Dict[int, MemInternalFactor]
     mem_external_factors: Dict[int, MemExternalFactor]
     mem_institutional_factors: Dict[int, MemInstitutionalFactor]
