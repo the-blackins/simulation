@@ -34,7 +34,7 @@ class MemExternalFactor:
 
 @dataclass
 class MemInstitutionalFactor:
-    id = int
+    id : int
     class_size : float
     facility_availability : float
     peer_support : float
