@@ -16,7 +16,7 @@ from .models import *
 
 def create_app():
     # Create the Flask app instance
-    app = Flask(__name__, instance_relative_config=True )
+    app = Flask(__name__, instance_relative_config=True)
 
     # Load configuration from config.py
     app.config.from_object(get_config())
