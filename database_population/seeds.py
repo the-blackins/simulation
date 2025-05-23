@@ -13,7 +13,7 @@ from database_population.json_loader import (load_department_course_data,
 
 
 from app.services.loader import load_initial_data
-from app.services.memory_state import States
+from app.services.memory_state import state_wrapper
 
 
 
@@ -321,19 +321,18 @@ def seed_student(universities, courses_map, departments_map, num_of_students):
     except Exception as e:
         print(f"error processing students: {str(e)}")
 
-class InMemorySimulation:
-    def __init__(self):
-        self.mem_loader = load_initial_data()
-        self.mem_state = States()
         
         
 
-    def loader(self):
-        mem_loader = self.mem_loader
-        return mem_loader
+def loader():
+    """loads data from the database"""
+    mem_loader = load_initial_data()
+    return mem_loader
+
+def memory_state_population(simulation_data):
+    """ initializes the memory state by loading data gotten from the database"""
+    state_wrapper(simulation_data)
     
-    def memory_state_population(self, simulation_data):
-        self.mem_state.state_wrapper(simulation_data)
 
         
 
@@ -365,11 +364,11 @@ def seed_data(selected_universities, num_students):
 
         # initiate  in-memory model
         print("creating memory...")
-        mem_model= InMemorySimulation()
-        mem_population = mem_model.loader()
+        
+        mem_population = loader()
         print("Populating memory...")
 
-        mem_model.memory_state_population(mem_population)
+        memory_state_population(mem_population)
         print(" Memory initialized and populated successfully ")
 
     except Exception as e:
