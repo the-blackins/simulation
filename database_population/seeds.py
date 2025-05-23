@@ -12,6 +12,10 @@ from database_population.json_loader import (load_department_course_data,
                                   load_student_data, load_university_data)
 
 
+from app.services.loader import load_initial_data
+from app.services.memory_state import States
+
+
 
 def seed_simulation(universities):
     from app.models import Simulation, InstitutionalFactors, University
@@ -317,28 +321,59 @@ def seed_student(universities, courses_map, departments_map, num_of_students):
     except Exception as e:
         print(f"error processing students: {str(e)}")
 
+class InMemorySimulation:
+    def __init__(self):
+        self.mem_loader = load_initial_data()
+        self.mem_state = States()
+        
+        
+
+    def loader(self):
+        mem_loader = self.mem_loader
+        return mem_loader
+    
+    def memory_state_population(self, simulation_data):
+        self.mem_state.state_wrapper(simulation_data)
+
+        
+
+        
+      
+
 
 def seed_data(selected_universities, num_students):
-    # Clear existing data
-    # ...
-    db.drop_all()
-    db.create_all()
-    
-    # Seed universities and departments
-    print("Seeding selected universities and departments...")
-    universities, departments_map = seed_universities_and_factors(selected_universities)
+    try: 
+        # Clear existing data
+        # ...
+        db.drop_all()
+        db.create_all()
+        
+        # Seed universities and departments
+        print("Seeding selected universities and departments...")
+        universities, departments_map = seed_universities_and_factors(selected_universities)
 
-    print("creating simulation...")
-    seed_simulation(universities)
-    # Seed courses
-    print("Seeding courses...")
-    courses_map = seed_courses(departments_map)
+        print("creating simulation...")
+        seed_simulation(universities)
+        # Seed courses
+        print("Seeding courses...")
+        courses_map = seed_courses(departments_map)
 
-    
-    # Seed students with their uni and course enrollments
-    print(f"Seeding {num_students} students with their uni and course enrollments...")
-    seed_student(universities, courses_map, departments_map, num_students)
+        
+        # Seed students with their uni and course enrollments
+        print(f"Seeding {num_students} students with their uni and course enrollments...")
+        seed_student(universities, courses_map, departments_map, num_students)
 
+        # initiate  in-memory model
+        print("creating memory...")
+        mem_model= InMemorySimulation()
+        mem_population = mem_model.loader()
+        print("Populating memory...")
+
+        mem_model.memory_state_population(mem_population)
+        print(" Memory initialized and populated successfully ")
+
+    except Exception as e:
+        raise RuntimeError(f" Error populating database: {str(e)}")
 def main():
     from app import create_app
     app = create_app()
@@ -350,8 +385,7 @@ def main():
         # Populate in order of dependencies
         print("Starting database seeding...")
         print("Clearing existing data...")
-        db.drop_all()
-        db.create_all()
+
         seed_data()
         print("Database population completed")
     

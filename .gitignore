@@ -16,6 +16,9 @@ migrations/
 # Database files
 *.sqlite3
 
+# personal backup 
+./app/backup
+
 # System files
 .DS_Store
 Thumbs.db

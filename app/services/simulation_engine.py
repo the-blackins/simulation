@@ -5,7 +5,7 @@ from sqlalchemy.orm.collections import InstrumentedList
 
 
 class SimulationEngine:
-    def __init__(self, state):
+    def __init__(self):
         self.BASE_SCORE = 70
         self.RANDOM_VARIATION = 5
         self.FACTOR_WEIGHTS = {

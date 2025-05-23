@@ -1,7 +1,8 @@
-
+""" Renders simulation charts to the frontend, process and run simulation """
 from sqlalchemy.orm.collections import InstrumentedList
 from .simulation_engine import SimulationEngine
 from flask import jsonify
+
 
 
 class SimulationService:
@@ -11,6 +12,7 @@ class SimulationService:
       from app.models import Simulation, Student
       self.sim_eng = SimulationEngine()
       self.sim_model = Simulation.query.all()
+      
       
 
 
@@ -36,6 +38,10 @@ class SimulationService:
 
       except Exception as e:
          raise   RuntimeError( f'An error occured {e}') 
+
+   def loader(self):
+      return self.mem_loader
+      
       
 
    def process_factors(self, factors, factor_type, identifier):

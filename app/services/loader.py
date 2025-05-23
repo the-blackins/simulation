@@ -3,33 +3,53 @@
 from sqlalchemy.orm import joinedload
 from collections import defaultdict
 
+
 def load_initial_data():
-    from app.models import  InstitutionalFactors, Student, Simulation
+    from app.models import  InstitutionalFactors, Student, Simulation, InternalFactors, ExternalFactors
     from app import db
 
     try:
-        grouped_list = defaultdict(list)
+        simulations = Simulation.query.all()
+        # grouped_list = defaultdict(list)
         loaded_data = []
+        
 
-        loaded_institional_factor_data = (
-            db.session.query(InstitutionalFactors)
-            .options(joinedload(InstitutionalFactors.simulation).load_only("id"))
-            .all()
-        )   
+        
 
+        for simulation in simulations:
 
-        loaded_institional_factor_data = db.session.query(InstitutionalFactors).options(joinedload(InstitutionalFactors.simulation)).all()
-        loaded_internal_factor_data = db.session.query(Student).options(joinedload(Student.internal_factors)).all()
-        loaded_external_factor_data = db.session.query(Student).options(joinedload(Student.external_factors)).all()
+            loaded_internal_factors = (db.session.query(InternalFactors).
+            join(InternalFactors.students).
+            join(Student.simulation).
+            filter(Simulation.id == simulation.id).
+            all())
 
-        loaded_data.append(loaded_external_factor_data)
-        loaded_data.append(loaded_institional_factor_data) 
-        loaded_data.append(loaded_internal_factor_data)
+            loaded_external_factors = (db.session.query(ExternalFactors).
+            join(ExternalFactors.students).
+            join(Student.simulation).
+            filter(Simulation.id == simulation.id).
+            all())
 
+            loaded_institional_factors = (db.session.query(InstitutionalFactors).
+            join(InstitutionalFactors.simulation).
+            filter(Simulation.id == simulation.id).
+            all()
+            )
+
+            dict_list = {
+                "simulation_id": simulation.id,
+                "internal_factors": loaded_internal_factors,
+                "external_factors": loaded_external_factors,
+                "institutional_factors": loaded_institional_factors,
+            }
+            loaded_data.append(dict_list)
+
+        
+    
         return loaded_data
 
     except Exception as e:
-        raise f' error loading data: {str(e)}'
+        raise RuntimeError(f'error loading data from the database: {str(e)}') 
     
 
     
