@@ -7,6 +7,7 @@ from dataclasses import dataclass
 @dataclass
 class MemInternalFactor:
     id: int
+    simulation_id: int
     goal_setting: float
     personal_ambition: float
     interest_subject: float
@@ -20,6 +21,7 @@ class MemInternalFactor:
 @dataclass
 class MemExternalFactor:
     id: int
+    simulation_id: int
     family_expectations : float
     financial_stability : float
     access_to_resources : float

@@ -277,10 +277,10 @@ def seed_student(universities, courses_map, departments_map, num_of_students):
                 # db.session.flush()  # This will assign an ID to the student
                 
                 # Create related records
-                external_factors = generate_external_factors(student)
+                external_factors = generate_external_factors(student, simulation)
                 external_factor_arr.append(external_factors)
                 
-                internal_factors = generate_internal_factors(student)
+                internal_factors = generate_internal_factors(student, simulation)
                 internal_factor_arr.append(internal_factors)
                 # db.session.add(internal_factors)
 

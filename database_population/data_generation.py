@@ -41,10 +41,10 @@ def generate_matriculation_number(university_name, department_name, year, count)
     dept_code = ''.join(word[0] for word in department_name.split())
     return f"{uni_code}/{dept_code}/{year}/{count:04d}"
 
-def generate_internal_factors(student):
+def generate_internal_factors(student, simulation):
     """Generate realistic internal factors for a student"""
     student.internal_factors = InternalFactors(
-        
+        simulation_id= simulation.id,
         goal_setting=uniform(5.0, 10.0),
         personal_ambition=uniform(5.0, 10.0),
         interest_subject=uniform(5.0, 10.0),
@@ -59,10 +59,10 @@ def generate_internal_factors(student):
     
     return internal_factors
 
-def generate_external_factors(student):
+def generate_external_factors(student, simulation):
     """Generate realistic external factors for a student"""
     student.external_factors = ExternalFactors(
-        
+        simulation_id= simulation.id,
         financial_stability=uniform(4.0, 9.0),
         access_to_resources=uniform(4.0, 9.0),
         family_support=uniform(5.0, 10.0),
