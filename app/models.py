@@ -102,7 +102,7 @@ class InternalFactors(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey('students.id', name='fk_internal_factors_student'), nullable=False)
-    # simulation_id = db.Column(db.Integer, db.ForeignKey('simulation.id'), primary_key=True, nullable= True)
+    simulation_id = db.Column(db.Integer, db.ForeignKey('simulation.id'))
     goal_setting = db.Column(db.Float)
     personal_ambition = db.Column(db.Float)
     interest_subject = db.Column(db.Float)
@@ -113,6 +113,7 @@ class InternalFactors(db.Model):
     focus_study = db.Column(db.Float)
     self_assessment = db.Column(db.Float)
 
+    simulation = db.relationship('Simulation', back_populates='internal_factors')
     students = db.relationship('Student', back_populates='internal_factors', single_parent=True)
     __table_args__ = (
         UniqueConstraint('student_id', name='uq_internal_factors_student_id'),
@@ -124,6 +125,7 @@ class ExternalFactors(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey('students.id', name='fk_external_factors_student'), nullable=False)
+    simulation_id = db.Column(db.Integer, db.ForeignKey('simulation.id'))
     family_expectations = db.Column(db.Float)
     financial_stability = db.Column(db.Float)
     access_to_resources = db.Column(db.Float)
@@ -135,8 +137,8 @@ class ExternalFactors(db.Model):
     teaching_quality = db.Column(db.Float)
     feedback_assessment = db.Column(db.Float)
     
+    simulation = db.relationship("Simulation", back_populates = 'external_factors')
     students = db.relationship('Student', back_populates='external_factors', single_parent=True)
-    simulation_id = db.Column(db.Integer, db.ForeignKey('simulation.id'), nullable= True)
 
     __table_args__ = (
         UniqueConstraint('student_id', name='uq_external_factors_student_id'),
@@ -175,7 +177,8 @@ class Simulation(db.Model):
     results = db.relationship('SimulationResult', backref='simulation', lazy=True)
     # institutional_factors = db.relationship('InstitutionalFactors', back_populates ='simulation', lazy= True)
     institutional_factors = db.relationship('InstitutionalFactors', back_populates='simulation', uselist = False, cascade='all, delete-orphan'  )
-
+    internal_factors = db.relationship('InternalFactors', back_populates = 'simulation' )
+    external_factors = db.relationship('ExternalFactors', back_populates = 'simulation')
     students = db.relationship('Student',  back_populates='simulation', lazy=True)
     __table_args__ = {'extend_existing': True}             
 

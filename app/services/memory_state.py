@@ -38,6 +38,7 @@ def create_memory_state( mem_dict):
         mem_internal_factors={
             f.id: MemInternalFactor(
                 id=f.id,
+                simulation_id= f.simulation_id,
                 goal_setting=f.goal_setting,
                 personal_ambition=f.personal_ambition,
                 interest_subject=f.interest_subject,
@@ -54,6 +55,7 @@ def create_memory_state( mem_dict):
         mem_external_factors={
             f.id: MemExternalFactor(
                 id=f.id,
+                simulation_id= f.simulation_id,
                 financial_stability=f.financial_stability,
                 family_expectations=f.family_expectations,  
                 access_to_resources=f.access_to_resources,
@@ -89,7 +91,7 @@ def state_wrapper(mem_list):
             for mem_dict in mem_list:
                 mermory_state= create_memory_state(mem_dict)
                 sim_states = hold_current_state( mermory_state)
-            return print(sim_states)
+            return print(sim_states.mem_internal_factors)
     except Exception as e:
         raise RuntimeError(f"error wrapping states ")
 
