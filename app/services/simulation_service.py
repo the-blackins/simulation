@@ -2,6 +2,7 @@
 from sqlalchemy.orm.collections import InstrumentedList
 from .simulation_engine import SimulationEngine
 from flask import jsonify
+from .memory_state import create_memory_state
 
 
 
@@ -12,6 +13,7 @@ class SimulationService:
       from app.models import Simulation, Student
       self.sim_eng = SimulationEngine()
       self.sim_model = Simulation.query.all()
+      # self.memory = create_memory_state()
       
       
 
@@ -43,7 +45,7 @@ class SimulationService:
       return self.mem_loader
       
       
-
+# processs factors
    def process_factors(self, factors, factor_type, identifier):
       """Process factors if they are an InstrumentedList."""
       try:
@@ -61,7 +63,7 @@ class SimulationService:
          raise RuntimeError(f"Error processing factors {str(e)}" )
 
 
-
+# run simulation
    def process_simulation(self):
       """ process students in each simulation"""
       from app.models import InstitutionalFactors

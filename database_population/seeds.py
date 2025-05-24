@@ -12,8 +12,7 @@ from database_population.json_loader import (load_department_course_data,
                                   load_student_data, load_university_data)
 
 
-from app.services.loader import load_initial_data
-from app.services.memory_state import state_wrapper
+
 
 
 
@@ -322,17 +321,7 @@ def seed_student(universities, courses_map, departments_map, num_of_students):
         print(f"error processing students: {str(e)}")
 
         
-        
-
-def loader():
-    """loads data from the database"""
-    mem_loader = load_initial_data()
-    return mem_loader
-
-def memory_state_population(simulation_data):
-    """ initializes the memory state by loading data gotten from the database"""
-    state_wrapper(simulation_data)
-    
+  
 
         
 
@@ -362,15 +351,7 @@ def seed_data(selected_universities, num_students):
         print(f"Seeding {num_students} students with their uni and course enrollments...")
         seed_student(universities, courses_map, departments_map, num_students)
 
-        # initiate  in-memory model
-        print("creating memory...")
         
-        mem_population = loader()
-        print("Populating memory...")
-
-        memory_state_population(mem_population)
-        print(" Memory initialized and populated successfully ")
-
     except Exception as e:
         raise RuntimeError(f" Error populating database: {str(e)}")
 def main():
