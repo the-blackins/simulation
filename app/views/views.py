@@ -61,7 +61,7 @@ def submit_simulation_form():
 
  
 
-
+@simulate_bp.route('/load-memory')
 def load_memory():
     try:       
 
