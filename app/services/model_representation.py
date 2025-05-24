@@ -3,11 +3,11 @@
 from typing import Dict , List
 
 from dataclasses import dataclass
+from collections import defaultdict
 
 @dataclass
 class MemInternalFactor:
     id: int
-    simulation_id: int
     goal_setting: float
     personal_ambition: float
     interest_subject: float
@@ -21,7 +21,6 @@ class MemInternalFactor:
 @dataclass
 class MemExternalFactor:
     id: int
-    simulation_id: int
     family_expectations : float
     financial_stability : float
     access_to_resources : float
@@ -49,6 +48,6 @@ class MemInstitutionalFactor:
 @dataclass 
 class SimulationState:
     # simulation id of which these tables are associated to 
-    mem_internal_factors: Dict[int, MemInternalFactor]
-    mem_external_factors: Dict[int, MemExternalFactor]
-    mem_institutional_factors: Dict[int, MemInstitutionalFactor]
+    mem_internal_factors: Dict[int, List[MemInternalFactor]]
+    mem_external_factors: Dict[int, List[MemExternalFactor]]
+    mem_institutional_factors: Dict[int, List[MemInstitutionalFactor]]

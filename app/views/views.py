@@ -7,8 +7,8 @@ from datetime import datetime
 from flask import (Blueprint, jsonify, redirect, render_template, request,
                    url_for)
 
-from app.services.simulation_engine import SimulationEngine
 from app.services.simulation_service import SimulationService
+from app.services import  loader, memory_state_population
 
 form_bp = Blueprint('form', __name__)
 home_bp = Blueprint('home', __name__)
@@ -25,9 +25,9 @@ def simulation_setup():
     return render_template('form.html')
 
 @form_bp.route('/api/submit-simulation', methods=['POST'])
-
 def submit_simulation_form():
     try:         
+        from database_population.seeds import seed_data  # Import directly since it's used
         # Parse and validate JSON data
         data = request.get_json()
         
@@ -39,11 +39,11 @@ def submit_simulation_form():
             if field not in data:
                 return jsonify({'status': 'error', 'message': f'Missing required field: {field}'}), 400
         
-        from database_population.seeds import seed_data  # Import directly since it's used
 
         # Seed data with universities and student count
         seed_data(data['universities'], data['numStudents'])
 
+        load_memory()
         # Log simulation details
         print(f"Simulation created with: students={data['numStudents']}, "
               f"simulations={data['numSimulations']}, level={data['finalLevel']}, universities={data['universities']}")
@@ -52,6 +52,7 @@ def submit_simulation_form():
             'message': 'Simulation created successfully',
             'redirect_url': url_for('simulate.simulation_page',  _external=True)
         }), 200 
+    
         
     except Exception as e:
         print("Server error:", str(e))
@@ -59,19 +60,39 @@ def submit_simulation_form():
         return jsonify({'status': 'error', 'message': f'Server error: {str(e)}'}), 500
 
  
-simulation_engine = SimulationEngine() 
 
 
-@simulate_bp.route('/simulate')
+def load_memory():
+    try:       
+
+        mem_population = loader()
+        print("Populating memory...")
+
+        memory_state_population(mem_population)
+        print("Memory initialized and populated successfully")
+
+        return 'Memory loaded successfully', 200
+              
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return f'Error: {str(e)}', 500
+
+
+
+@simulate_bp.route('/api/simulate')
 def simulation_page():
     try:       
         
-        return render_template('simulation.html')
+        print("route ohk ")
+        
+        return render_template('simulation.html'), 200
               
     except Exception as e:
         # app.logger.error(f"Error rendering simulation page: {str(e)}")
         return str(e), 500
-    
+   
+
                   
 @simulate_bp.route('/api/chart_render')
 def load_chart_instance():
