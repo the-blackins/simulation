@@ -49,67 +49,73 @@ class SimulationService:
    def process_factors(self, factors, factor_type, identifier):
       """Process factors if they are an InstrumentedList."""
       try:
-         if isinstance(factors, InstrumentedList):
             if factors:
                for factor in factors:
                   self.sim_eng.update_single_factor(factor)
-                  print(f"{factor} processing")
+                  # print(f"{factor} processing")
             else:
                print(f"No {factor_type} found for {identifier}")
-         else:
-            # Handle single object case
-            self.sim_eng.update_single_factor(factors)
       except Exception as e:
          raise RuntimeError(f"Error processing factors {str(e)}" )
 
 
 # run simulation
-   def process_simulation(self):
+   def process_simulation(self, simulation_data):
       """ process students in each simulation"""
       from app.models import InstitutionalFactors
       try:
-         result = []
-         simulations = self.sim_model         
+         simulations = self.sim_model
+
          for simulation in simulations:
-            students = simulation.students
-            for student in students:
-               if simulation.id == student.university_id:
-                  try:            
-                     # Processing each type of factors
-                     university_factors = simulation.institutional_factors
-                     self.process_factors(university_factors, "institutional factors", f"university {simulation.university_id}")
-                     # print(university_factors)
 
-                     external_factors = student.external_factors
-                     self.process_factors(external_factors, "external factors", f"student {student.id}")
-                     # print(external_factors)
-
-                     internal_factors = student.internal_factors
-                     self.process_factors(internal_factors, "internal factors", f"student {student.id}")
+            for simulation_id , internal_factors  in simulation_data.mem_internal_factors.items():
+               if simulation_id == simulation_id:
+                  self.process_factors(internal_factors, "internal factors", f"student {student.id}")
                      # print(internal_factors)
 
-                     if not (student.external_factors and student.internal_factors and simulation.university_id):
-                        print(f"Missing required data for student {student.id}")
-                     
-                     # Uncomment when ready
-                     score = self.sim_eng.calculate_performance(student)
 
-                     result.append({
-                        'simulation_id': simulation.id, 
-                        'student_id': student.id, 
-                        # 'test': 1
-                        'score': score
-                     })
-                  except Exception as e:
-                     # raise RuntimeError( e)
-                     # error status.
-                     result.append({
-                        'simulation_id': simulation.id,
-                        'student_id': student.id,
-                        'error': str(e)
-                     })
-               else:
-                  print(f"No matching simulation found for student {student.id}")
+         # result = []
+         # simulations = self.sim_model         
+         # for simulation in simulations:
+         #    students = simulation.students
+         #    for student in students:
+         #       if simulation.id == student.university_id:
+         #          try:            
+         #             # Processing each type of factors
+         #             university_factors = simulation.institutional_factors
+         #             self.process_factors(university_factors, "institutional factors", f"university {simulation.university_id}")
+         #             # print(university_factors)
+
+         #             external_factors = student.external_factors
+         #             self.process_factors(external_factors, "external factors", f"student {student.id}")
+         #             # print(external_factors)
+
+         #             internal_factors = student.internal_factors
+         #             self.process_factors(internal_factors, "internal factors", f"student {student.id}")
+         #             # print(internal_factors)
+
+         #             if not (student.external_factors and student.internal_factors and simulation.university_id):
+         #                print(f"Missing required data for student {student.id}")
+                     
+         #             # Uncomment when ready
+         #             score = self.sim_eng.calculate_performance(student)
+
+         #             result.append({
+         #                'simulation_id': simulation.id, 
+         #                'student_id': student.id, 
+         #                # 'test': 1
+         #                'score': score
+         #             })
+         #          except Exception as e:
+         #             # raise RuntimeError( e)
+         #             # error status.
+         #             result.append({
+         #                'simulation_id': simulation.id,
+         #                'student_id': student.id,
+         #                'error': str(e)
+         #             })
+         #       else:
+         #          print(f"No matching simulation found for student {student.id}")
          
          
          return {'status':'success' , 'result': result}

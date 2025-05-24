@@ -17,10 +17,11 @@ def main():
 
     
     loaded_data = loader()
-    memory_state_population(loaded_data)
+    memory_state= memory_state_population(loaded_data)
 
     simulation_service = SimulationService()
-    
+    simulation_service.process_simulation(memory_state)
+
 
     
 
