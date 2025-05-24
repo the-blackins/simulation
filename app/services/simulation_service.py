@@ -64,62 +64,43 @@ class SimulationService:
       """ process students in each simulation"""
       from app.models import InstitutionalFactors
       try:
+         result =[]
          simulations = self.sim_model
 
          for simulation in simulations:
 
             for simulation_id , internal_factors  in simulation_data.mem_internal_factors.items():
-               if simulation_id == simulation_id:
-                  self.process_factors(internal_factors, "internal factors", f"student {student.id}")
-                     # print(internal_factors)
+               if simulation_id == simulation.id:
+                  self.process_factors(internal_factors, "internal factors", f"internal factor {simulation.id}")
+                  
+            for simulation_id , external_factors  in simulation_data.mem_external_factors.items():
+               if simulation_id == simulation.id:
+                  self.process_factors(external_factors, "external factors", f"external factor {simulation.id}")
 
+            for simulation_id , institutional_factors  in simulation_data.mem_internal_factors.items():
+               if simulation_id == simulation.id:
+                  self.process_factors(external_factors, "external factors", f"external factor {simulation.id}")
+                  
+            
+                  # Uncomment when ready
+                  score = self.sim_eng.calculate_performance(student)
 
-         # result = []
-         # simulations = self.sim_model         
-         # for simulation in simulations:
-         #    students = simulation.students
-         #    for student in students:
-         #       if simulation.id == student.university_id:
-         #          try:            
-         #             # Processing each type of factors
-         #             university_factors = simulation.institutional_factors
-         #             self.process_factors(university_factors, "institutional factors", f"university {simulation.university_id}")
-         #             # print(university_factors)
-
-         #             external_factors = student.external_factors
-         #             self.process_factors(external_factors, "external factors", f"student {student.id}")
-         #             # print(external_factors)
-
-         #             internal_factors = student.internal_factors
-         #             self.process_factors(internal_factors, "internal factors", f"student {student.id}")
-         #             # print(internal_factors)
-
-         #             if not (student.external_factors and student.internal_factors and simulation.university_id):
-         #                print(f"Missing required data for student {student.id}")
-                     
-         #             # Uncomment when ready
-         #             score = self.sim_eng.calculate_performance(student)
-
-         #             result.append({
-         #                'simulation_id': simulation.id, 
-         #                'student_id': student.id, 
-         #                # 'test': 1
-         #                'score': score
-         #             })
-         #          except Exception as e:
-         #             # raise RuntimeError( e)
-         #             # error status.
-         #             result.append({
-         #                'simulation_id': simulation.id,
-         #                'student_id': student.id,
-         #                'error': str(e)
-         #             })
-         #       else:
-         #          print(f"No matching simulation found for student {student.id}")
-         
-         
-         return {'status':'success' , 'result': result}
+               result.append({
+                  'simulation_id': simulation.id, 
+                  'student_id': student.id, 
+                  # 'test': 1
+                  'score': score
+               })
+           
+   
+         return {'status':'success' , 'result': result}  
          
       except Exception as e:
+         result.append({
+            'simulation_id': simulation.id,
+            'student_id': student.id,
+            'error': str(e)
+         })
+
          # return jsonify({'status': 'error', 'message': str(e)})
          raise RuntimeError(f"Error processingg simulation {str(e)}")
