@@ -25,7 +25,7 @@ class SimulationEngine:
                     new_value = value + delta
                     setattr(obj, attr, new_value)
 
-    def update_single_factor(self, factors):
+    def update_single_factor(self, attr_value):
         # from app import db
 
         # from app.models import InternalFactors, ExternalFactors, InstitutionalFactors
@@ -46,9 +46,7 @@ class SimulationEngine:
         """update each attributes of the factor in the memory"""
         try:
             # factors = [state.institutional_factors,  state.internal_factors, state.external_factors]
-            for factor in factors:
-                for obj in factor:
-                    self.random_walk(obj, step_size=0.1)
+            self.random_walk(attr_value, step_size=0.1)
                      
             
         except Exception as e:
