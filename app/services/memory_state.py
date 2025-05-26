@@ -4,6 +4,7 @@ from app.services.loader import load_initial_data
 from app.services.model_representation import SimulationState
 from sqlalchemy.orm import session
 from app.services.model_representation import MemInstitutionalFactor, MemInternalFactor, MemExternalFactor
+from typing import Dict
 from collections import defaultdict
 # initial_data= load_initial_data()
 # simulation_state = SimulationState()
@@ -21,10 +22,11 @@ def create_memory_state( mem_dict):
     """Process db_objects and return a SimulationState instance."""
     try:
         mem_institutional_factors = defaultdict(list)
-        mem_external_factors = defaultdict(list)
+        mem_external_factors =defaultdict(list)
         mem_internal_factors = defaultdict(list)
         
         for f in mem_dict.get("institutional_factors", []):
+            { 
             mem_institutional_factors[f.simulation.id].append( 
                  MemInstitutionalFactor(
                     id=f.id,
@@ -37,7 +39,7 @@ def create_memory_state( mem_dict):
                     cultural_norms=f.cultural_norms,
                     peer_influence=f.peer_influence
                 )
-            ), 
+            )}, 
         for f in mem_dict.get("internal_factors", []):
             mem_internal_factors[f.simulation.id].append( 
                 MemInternalFactor(
@@ -72,7 +74,7 @@ def create_memory_state( mem_dict):
         ),
 
         model_state=  SimulationState( 
-            # simulation id of which these tables are associated to 
+            
             mem_internal_factors = mem_internal_factors,
             mem_external_factors = mem_external_factors,
             mem_institutional_factors =mem_institutional_factors
@@ -83,14 +85,34 @@ def create_memory_state( mem_dict):
     
         raise f"error creating memory state database objects as {str(e)}"
 
+def merge_state(base: SimulationState, new: SimulationState):
+    for k, v in new.mem_internal_factors.items():
+        base.mem_internal_factors[k].extend(v)
+    
+    for k, v in new.mem_external_factors.items():
+        base.mem_external_factors[k]. extend(v)
+    
+    for k, v in new.mem_institutional_factors.items():
+        base.mem_institutional_factors[k].extend(v)
+    return base
+
 
 def state_wrapper(mem_list):
     try:
-            # get the total number of simulations in the simulation  database
-            for mem_dict in mem_list:
-                mermory_state= create_memory_state(mem_dict)
-                
-            return mermory_state
+        from collections import defaultdict
+
+        accumated_state = SimulationState( 
+            
+            mem_internal_factors = defaultdict(list),
+            mem_external_factors = defaultdict(list),
+            mem_institutional_factors =defaultdict(list)
+        )
+        # get the total number of simulations in the simulation  database
+        for mem_dict in mem_list:
+            mermory_state= create_memory_state(mem_dict)
+            accumated_state = merge_state(accumated_state, mermory_state)
+        return accumated_state
+            
     except Exception as e:
         raise RuntimeError(f"error wrapping states ")
 
