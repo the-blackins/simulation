@@ -3,6 +3,7 @@ from sqlalchemy.orm.collections import InstrumentedList
 from .simulation_engine import SimulationEngine
 from flask import jsonify
 from .memory_state import create_memory_state
+from dataclasses import asdict
 
 
 
@@ -66,21 +67,30 @@ class SimulationService:
       try:
          result =[]
          simulations = self.sim_model
+         # print(simulation_data.mem_institutional_factors.values())
+         for value in asdict(simulation_data.mem_institutional_factors).values():
+            print(asdict(value))
 
          for simulation in simulations:
 
             for simulation_id , internal_factors  in simulation_data.mem_internal_factors.items():
                if simulation_id == simulation.id:
                   self.process_factors(internal_factors, "internal factors", f"internal factor {simulation.id}")
+               else:
+                  print(f"No internal factors found for simulation {simulation.id}")
                   
             for simulation_id , external_factors  in simulation_data.mem_external_factors.items():
                if simulation_id == simulation.id:
                   self.process_factors(external_factors, "external factors", f"external factor {simulation.id}")
+               else:
+                  print(f"No external factors found for simulation {simulation.id}")
+            # print("block ohk and running")
 
             for simulation_id , institutional_factors  in simulation_data.mem_internal_factors.items():
                if simulation_id == simulation.id:
                   self.process_factors(institutional_factors, "external factors", f"external factor {simulation.id}")
-                  
+               else:
+                  print(f"No institutional factors found for simulation {simulation.id}")
             
                   # Uncomment when ready
             score = self.sim_eng.calculate_performance(simulation_data)
