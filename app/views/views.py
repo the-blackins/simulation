@@ -59,17 +59,14 @@ def submit_simulation_form():
         print("Traceback:", traceback.format_exc())
         return jsonify({'status': 'error', 'message': f'Server error: {str(e)}'}), 500
 
- 
+
 
 @simulate_bp.route('/load-memory')
 def load_memory():
     try:       
-
-        mem_population = loader()
-        print("Populating memory...")
-
-        memory_state_population(mem_population)
-        print("Memory initialized and populated successfully")
+        from app.services import load_memory
+        # Load initial data from the database
+        load_memory()
 
         return 'Memory loaded successfully', 200
               
@@ -112,6 +109,9 @@ def run_simulation_step():
     session = Session()
 
     try:
+        from app.services import run_simulation
+        print("Running simulation step...")
+        run_simulation()
         simulation_service = SimulationService()
         chart_data = simulation_service.process_simulation()
         return jsonify(chart_data)

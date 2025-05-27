@@ -7,11 +7,10 @@ from flask_sqlalchemy import SQLAlchemy
 
 from .config import get_config
 # from database.setup import initialize_db
-from .views.views import form_bp, home_bp, simulate_bp
 
 db = SQLAlchemy()
 cors = CORS()
-from .models import *
+from .models import * 
 
 
 def create_app():
@@ -32,6 +31,7 @@ def create_app():
     cors.init_app(app)
     
 
+    from .views.views import form_bp, home_bp, simulate_bp
     # Example usage
     configure_logger(app)
     # Register blueprints (if any)
