@@ -1,5 +1,6 @@
 import random
 from sqlalchemy.orm.collections import InstrumentedList
+from dataclasses import asdict
 
 # from app.services.memory_state import create_memory_state
 
@@ -22,10 +23,10 @@ class SimulationEngine:
             if attr not in self.EXCLUDED_ATTRIBUTES:
                 if isinstance(value, float):
                     delta = random.uniform(-step_size, step_size)
-                    new_value = value + delta
+                    new_value = value + delta 
                     setattr(obj, attr, new_value)
 
-    def update_single_factor(self, attr_value):
+    def update_single_factor(self, factor_values_list_all):
         # from app import db
 
         # from app.models import InternalFactors, ExternalFactors, InstitutionalFactors
@@ -46,7 +47,7 @@ class SimulationEngine:
         """update each attributes of the factor in the memory"""
         try:
             # factors = [state.institutional_factors,  state.internal_factors, state.external_factors]
-            self.random_walk(attr_value, step_size=0.1)
+            self.random_walk(factor_values_list_all, step_size=0.1)
                      
             
         except Exception as e:
@@ -65,15 +66,18 @@ class SimulationEngine:
         # Process single factor object
         total = 0
         count = 0
-        for attr, value in factors.items():
-            if attr not in ['id', 'student_id', 'university_id', 'simulation_id']:
-                total += value
-                count += 1
-        
+        for id, list_of_values in factors.items():
+            factors[id] = [
+                list(asdict(list_of_values).values() for factor in factors)
+            ]
+            for value in list_of_values:
+                if type(value) == float:
+                    total += list_of_values[count]
+                    count += 1 
+            
         return total / count if count > 0 else 1.0
     
-    """utilize this function to calculate the average facotor influence for each student
-    """
+     
 
     def calculate_performance(self, state):
         """Calculate student performance based on all factors"""

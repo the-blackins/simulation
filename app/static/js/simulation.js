@@ -184,6 +184,7 @@ class StudentSimulation {
             });
 
             if (!response.ok) {
+                console.log(response.json())
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
