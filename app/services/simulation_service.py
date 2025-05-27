@@ -79,28 +79,26 @@ class SimulationService:
 
             for simulation_id , institutional_factors  in simulation_data.mem_internal_factors.items():
                if simulation_id == simulation.id:
-                  self.process_factors(external_factors, "external factors", f"external factor {simulation.id}")
+                  self.process_factors(institutional_factors, "external factors", f"external factor {simulation.id}")
                   
             
                   # Uncomment when ready
-                  score = self.sim_eng.calculate_performance(student)
+            score = self.sim_eng.calculate_performance(simulation_data)
 
-               result.append({
-                  'simulation_id': simulation.id, 
-                  'student_id': student.id, 
-                  # 'test': 1
-                  'score': score
-               })
-           
+            result.append({
+               'simulation_id': simulation.id, 
+               'score': score
+            })
+         
    
          return {'status':'success' , 'result': result}  
          
       except Exception as e:
          result.append({
             'simulation_id': simulation.id,
-            'student_id': student.id,
+            # 'student_id': student.id,
             'error': str(e)
          })
 
          # return jsonify({'status': 'error', 'message': str(e)})
-         raise RuntimeError(f"Error processingg simulation {str(e)}")
+         raise f"Error processingg simulation {str(e)}"
