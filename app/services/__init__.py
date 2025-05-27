@@ -13,17 +13,27 @@ def memory_state_population(simulation_data):
     return state_wrapper(simulation_data)
 
 
-def run_simulation():
+def load_memory():
+    """runs the simulation by loading data from the database and processing it"""
 
-    
+    print("Populating memory...")
+    # Load initial data from the database       
     loaded_data = loader()
-    memory_state= memory_state_population(loaded_data)
+    memory_state=memory_state_population(loaded_data)
+    print("Memory initialized and populated successfully")
+    return memory_state
 
+
+def run_simulation():
+    """runs the simulation by loading data from the database and processing it"""
+    updated_memory = load_memory()
+    print("simulation service test...")
     simulation_service = SimulationService()
-    simulation_service.process_simulation(memory_state)
+    print("Processing simulation...")
+    simulation_service.process_simulation(updated_memory)
+    print("Simulation run successfully")
 
 
-run_simulation()
 
 
 

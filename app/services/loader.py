@@ -5,10 +5,9 @@ from collections import defaultdict
 
 
 def load_initial_data():
-    from app.models import  InstitutionalFactors, Student, Simulation, InternalFactors, ExternalFactors
-    from app import db
-
     try:
+        from app.models import  InstitutionalFactors, Student, Simulation, InternalFactors, ExternalFactors
+        from app import db
         simulations = Simulation.query.all()
         # grouped_list = defaultdict(list)
         loaded_data = []
