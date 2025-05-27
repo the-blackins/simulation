@@ -30,7 +30,7 @@ def run_simulation():
     print("simulation service test...")
     simulation_service = SimulationService()
     print("Processing simulation...")
-    simulation_service.process_simulation(updated_memory)
+    simulation_service.process_simulation(simulation_data=updated_memory)
     print("Simulation run successfully")
 
 
