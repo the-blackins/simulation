@@ -24,10 +24,13 @@ def create_memory_state( mem_dict):
         mem_institutional_factors = defaultdict(list)
         mem_external_factors =defaultdict(list)
         mem_internal_factors = defaultdict(list)
-        
+        count = 0
         for f in mem_dict.get("institutional_factors", []):
+
+            student_ids = tuple(student.id for student in f.simulation.students)
+            print(f"student_ids: {student_ids}")
             { 
-            mem_institutional_factors[f.simulation.id].append( 
+            mem_institutional_factors[(f.simulation.id, student_ids[count])].append( 
                  MemInstitutionalFactor(
                     id=f.id,
                     class_size=f.class_size,
@@ -40,8 +43,10 @@ def create_memory_state( mem_dict):
                     peer_influence=f.peer_influence
                 )
             )}, 
+            count += 1
         for f in mem_dict.get("internal_factors", []):
-            mem_internal_factors[f.simulation.id].append( 
+            student_ids = tuple(student.id for student in f.simulation.students)
+            mem_internal_factors[(f.simulation.id, student_ids)].append( 
                 MemInternalFactor(
                     id=f.id,
                     goal_setting=f.goal_setting,
@@ -57,7 +62,8 @@ def create_memory_state( mem_dict):
             ), 
             
         for f in mem_dict.get("external_factors", []):
-            mem_external_factors[f.simulation.id].append( 
+            student_ids = tuple(student.id for student in f.simulation.students)
+            mem_external_factors[(f.simulation.id, student_ids)].append( 
             MemExternalFactor(
                 id=f.id,
                 financial_stability=f.financial_stability,
@@ -87,13 +93,13 @@ def create_memory_state( mem_dict):
 
 def merge_state(base: SimulationState, new: SimulationState):
     for k, v in new.mem_internal_factors.items():
-        base.mem_internal_factors[k].extend(v)
+        base.mem_internal_factors[k[0]].extend(v)
     
     for k, v in new.mem_external_factors.items():
-        base.mem_external_factors[k]. extend(v)
+        base.mem_external_factors[k[0]]. extend(v)
     
     for k, v in new.mem_institutional_factors.items():
-        base.mem_institutional_factors[k].extend(v)
+        base.mem_institutional_factors[k[0]].extend(v)
     return base
 
 
@@ -110,6 +116,7 @@ def state_wrapper(mem_list):
         # get the total number of simulations in the simulation  database
         for mem_dict in mem_list:
             mermory_state= create_memory_state(mem_dict)
+            
             accumated_state = merge_state(accumated_state, mermory_state)
         return accumated_state
             

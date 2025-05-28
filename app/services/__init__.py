@@ -10,7 +10,8 @@ def loader():
 
 def memory_state_population(simulation_data):
     """ initializes the memory state by loading data gotten from the database"""
-    return state_wrapper(simulation_data)
+    
+    return print(state_wrapper(simulation_data))
 
 
 def load_memory():
