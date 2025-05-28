@@ -64,6 +64,7 @@ class SimulationService:
 
 
 # run simulation
+   # import pdb; pdb.set_trace()
    def process_simulation(self, simulation_data):
       """ process students in each simulation"""
       from app.models import InstitutionalFactors
@@ -95,15 +96,16 @@ class SimulationService:
                print(f"No institutional factors found for simulation {simulation.id}")
          
             # Uncomment when ready
-            # score = self.sim_eng.calculate_performance(simulation_data)
+            score = self.sim_eng.calculate_performance(mem_internal_factors=mem_internal_factors, mem_external_factors=mem_external_factors, mem_institutional_factors=mem_institutional_factors)
 
-            # result.append({
-            #    'simulation_id': simulation.id, 
-            #    'score': score
-            # })
+            
+            result.append({
+               'simulation_id': simulation.id, 
+               'score': score
+            })
          
-   
-      # return {'status':'success' , 'result': result}  
+         print(result)
+         # return {'status':'success' , 'result': result}  
          
       except Exception as e:
          result.append({ # type: ignore

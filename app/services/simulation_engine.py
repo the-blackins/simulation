@@ -41,48 +41,55 @@ class SimulationEngine:
             raise RuntimeError(f'error updating factors: {str(e)}') 
         
     
-    def calculate_factor_impact(self, factors):
-        """Calculate the weighted impact of a set of factors"""
-        # If factors is a list/collection, use the first item
-        # if isinstance(factors, SimulationState):
-        if factors:
-            factors = factors[0]  # Take the first item
-        else:
-            return 1.0  # Return default impact for empty list
+    def calculate_factor_impact(self, factor):
+        """Calculate the weighted impact of a set of factor objects"""
+        try:
+            # Process single factor object
         
-        # Process single factor object
-        total = 0
-        count = 0
-        for id, list_of_values in factors.items():
-            factors[id] = [
-                list(asdict(list_of_values).values() for factor in factors)
-            ]
-            for value in list_of_values:
-                if type(value) == float:
-                    total += list_of_values[count]
-                    count += 1 
-            
-        return total / count if count > 0 else 1.0
-    
+            total = 0
+            count = 0
+            if factor:
+                dict_factors = vars(factor)
+                for attr, value in dict_factors.items():
+                    if attr not in self.EXCLUDED_ATTRIBUTES:
+                        total += value
+                        count += 1
+                        
+            else:
+                print(f'{factor} is not a valid object')
+
+            return total / count if count > 0 else 1.0
+        except Exception as e:
+            raise (f"error calculating factor impact: {str(e)}")
      
 
-    def calculate_performance(self, state):
+    def calculate_performance(self, mem_internal_factors, mem_external_factors, mem_institutional_factors ):
         """Calculate student performance based on all factors"""
-        # Handle potential None values or empty lists
-        external_impact = (self.calculate_factor_impact(state.external_factors) 
-                         if state.external_factors else 1.0)
-        internal_impact = (self.calculate_factor_impact(state.internal_factors) 
-                         if state.internal_factors else 1.0)
-        institutional_impact = (self.calculate_factor_impact(state.institutional_factors) 
-                              if state.institutional_factors else 1.0)
+        try:
+            # Handle potential None values or empty lists
+            for mem_external_factor in mem_external_factors:
+                external_impact = (self.calculate_factor_impact(mem_external_factor) 
+                                if mem_external_factor else 1.0)
+            
+            for mem_internal_factor in mem_internal_factors:
+                internal_impact = (self.calculate_factor_impact(mem_internal_factor) 
+                                if  mem_internal_factor else 1.0)
+            
+            for mem_institutional_factor in mem_institutional_factors:
+                institutional_impact = (self.calculate_factor_impact(mem_institutional_factor) 
+                                    if mem_institutional_factor else 1.0)
 
-        weighted_impact = (
-            external_impact * self.FACTOR_WEIGHTS['external'] +
-            internal_impact * self.FACTOR_WEIGHTS['internal'] +
-            institutional_impact * self.FACTOR_WEIGHTS['institutional']
-        )
+            weighted_impact = (
+                external_impact * self.FACTOR_WEIGHTS['external'] +
+                internal_impact * self.FACTOR_WEIGHTS['internal'] +
+                institutional_impact * self.FACTOR_WEIGHTS['institutional']
+            )
 
-        random_variation = random.uniform(-self.RANDOM_VARIATION, self.RANDOM_VARIATION)
-        final_score = self.BASE_SCORE * weighted_impact + random_variation
+            random_variation = random.uniform(-self.RANDOM_VARIATION, self.RANDOM_VARIATION)
+            final_score = self.BASE_SCORE * weighted_impact + random_variation
+            
+            return final_score
+        except Exception as e:
+            raise RuntimeError(f"error calculating performance: {str(e)}")
 
-        return max(0, min(100, final_score))
+        # return max(0, min(100, final_score))
