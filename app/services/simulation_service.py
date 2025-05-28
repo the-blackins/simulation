@@ -42,17 +42,20 @@ class SimulationService:
       except Exception as e:
          raise   RuntimeError( f'An error occured {e}') 
 
-   def loader(self):
-      return self.mem_loader
+   
       
       
 # processs factors
    def process_factors(self, factors, factor_type, identifier):
       """Process factors if they are an InstrumentedList."""
-      try:
+      try:  
+            count = 0
             if factors:
                for factor in factors:
+                  # datatype of factor is an object of a data class
                   self.sim_eng.update_single_factor(factor)
+                  count += 1
+               print(f"Processed {count} {factor_type} for {identifier}")
                   # print(f"{factor} processing")
             else:
                print(f"No {factor_type} found for {identifier}")
@@ -67,48 +70,47 @@ class SimulationService:
       try:
          result =[]
          simulations = self.sim_model
-         # print(simulation_data.mem_institutional_factors.values())
-         for value in asdict(simulation_data.mem_institutional_factors).values():
-            print(asdict(value))
 
+         print(f"Number of simulations: {len(simulations)}")
          for simulation in simulations:
+            print(simulation.id)
+            # Get the simulation data for the current simulation
+            mem_internal_factors = simulation_data.mem_internal_factors.get(simulation.id)
+            if mem_internal_factors:
+               print(f"Processing internal factors for simulation {simulation.id}")
+               self.process_factors(mem_internal_factors, "internal factors", f"internal factor {simulation.id}")
+            else:
+               print(f"No internal factors found for simulation {simulation.id}")
+            mem_external_factors = simulation_data.mem_external_factors.get(simulation.id)
+            if mem_external_factors:
+               print(f"Processing external factors for simulation {simulation.id}")
+               self.process_factors(mem_external_factors, "external factors", f"external factor {simulation.id}")
+            else:
+               print(f"No external factors found for simulation {simulation.id}")
+            mem_institutional_factors = simulation_data.mem_institutional_factors.get(simulation.id)
+            if mem_institutional_factors:
+               print(f"Processing institutional factors for simulation {simulation.id}")
+               self.process_factors(mem_institutional_factors, "institutionsl factors", f"institutional factor {simulation.id}")
+            else:
+               print(f"No institutional factors found for simulation {simulation.id}")
+         
+            # Uncomment when ready
+            # score = self.sim_eng.calculate_performance(simulation_data)
 
-            for simulation_id , internal_factors  in simulation_data.mem_internal_factors.items():
-               if simulation_id == simulation.id:
-                  self.process_factors(internal_factors, "internal factors", f"internal factor {simulation.id}")
-               else:
-                  print(f"No internal factors found for simulation {simulation.id}")
-                  
-            for simulation_id , external_factors  in simulation_data.mem_external_factors.items():
-               if simulation_id == simulation.id:
-                  self.process_factors(external_factors, "external factors", f"external factor {simulation.id}")
-               else:
-                  print(f"No external factors found for simulation {simulation.id}")
-            # print("block ohk and running")
-
-            for simulation_id , institutional_factors  in simulation_data.mem_internal_factors.items():
-               if simulation_id == simulation.id:
-                  self.process_factors(institutional_factors, "external factors", f"external factor {simulation.id}")
-               else:
-                  print(f"No institutional factors found for simulation {simulation.id}")
-            
-                  # Uncomment when ready
-            score = self.sim_eng.calculate_performance(simulation_data)
-
-            result.append({
-               'simulation_id': simulation.id, 
-               'score': score
-            })
+            # result.append({
+            #    'simulation_id': simulation.id, 
+            #    'score': score
+            # })
          
    
-         return {'status':'success' , 'result': result}  
+      # return {'status':'success' , 'result': result}  
          
       except Exception as e:
-         result.append({
-            'simulation_id': simulation.id,
+         result.append({ # type: ignore
+            'simulation_id': simulation.id, # type: ignore
             # 'student_id': student.id,
             'error': str(e)
          })
 
          # return jsonify({'status': 'error', 'message': str(e)})
-         raise f"Error processingg simulation {str(e)}"
+         raise f"Error processingg simulation {str(e)}" # type: ignore

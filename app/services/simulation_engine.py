@@ -19,31 +19,18 @@ class SimulationEngine:
 
     def random_walk(self, obj, step_size ):
         """Apply random walk to factor values within bounds"""
-        for attr, value in vars(obj).items():
+        data_obj = vars(obj)
+        for attr, value in data_obj.items():
             if attr not in self.EXCLUDED_ATTRIBUTES:
                 if isinstance(value, float):
                     delta = random.uniform(-step_size, step_size)
                     new_value = value + delta 
                     setattr(obj, attr, new_value)
+                    # print(f"Updated {attr} from {value} to {new_value}")
+                else:
+                    print(f"Skipping non-float attribute: {attr} with value {value}")
 
     def update_single_factor(self, factor_values_list_all):
-        # from app import db
-
-        # from app.models import InternalFactors, ExternalFactors, InstitutionalFactors
-        # try:
-        #     EXCLUDED_COLUMNS =['id', 'student_id', 'university_id', 'simulation_id']
-        #     # Process single factor object
-        #     if isinstance(factors, (InternalFactors, ExternalFactors, InstitutionalFactors)):
-        #         for column in factors.__table__.columns:
-        #             if column.name not in EXCLUDED_COLUMNS:
-        #                 current_value = getattr(factors, column.name)
-        #                 setattr(factors, column.name, self.random_walk(current_value))
-        #     else:
-        #         print(f"Warning: {factors} is not a valid SQLAlchemy model instance.")
-
-        # except Exception as e:
-        #     db.session.rollback()
-        #     raise f"Error when processing factors: {str(e)}"
         """update each attributes of the factor in the memory"""
         try:
             # factors = [state.institutional_factors,  state.internal_factors, state.external_factors]
