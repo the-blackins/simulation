@@ -1,6 +1,6 @@
 """model represention for in-memory simulation"""
 
-from typing import Dict , List
+from typing import Dict , List, Tuple
 
 from dataclasses import dataclass
 from collections import defaultdict
@@ -48,6 +48,6 @@ class MemInstitutionalFactor:
 @dataclass 
 class SimulationState:
     # simulation id of which these tables are associated to 
-    mem_internal_factors: Dict[int, List[MemInternalFactor]]
-    mem_external_factors: Dict[int, List[MemExternalFactor]]
-    mem_institutional_factors: Dict[int, List[MemInstitutionalFactor]]
+    mem_internal_factors: Dict[Tuple[int, int], List[MemInternalFactor]]
+    mem_external_factors: Dict[Tuple[int,int], List[MemExternalFactor]]
+    mem_institutional_factors: Dict[Tuple[int,int], List[MemInstitutionalFactor]]

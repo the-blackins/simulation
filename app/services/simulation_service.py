@@ -14,6 +14,7 @@ class SimulationService:
       from app.models import Simulation, Student
       self.sim_eng = SimulationEngine()
       self.sim_model = Simulation.query.all()
+      self.student_model = Student.query.all()
       # self.memory = create_memory_state()
       
       
@@ -71,38 +72,41 @@ class SimulationService:
       try:
          result =[]
          simulations = self.sim_model
+         students = self.student_model
 
-         print(f"Number of simulations: {len(simulations)}")
-         for simulation in simulations:
-            print(simulation.id)
-            # Get the simulation data for the current simulation
-            mem_internal_factors = simulation_data.mem_internal_factors.get(simulation.id)
-            if mem_internal_factors:
-               print(f"Processing internal factors for simulation {simulation.id}")
-               self.process_factors(mem_internal_factors, "internal factors", f"internal factor {simulation.id}")
-            else:
-               print(f"No internal factors found for simulation {simulation.id}")
-            mem_external_factors = simulation_data.mem_external_factors.get(simulation.id)
-            if mem_external_factors:
-               print(f"Processing external factors for simulation {simulation.id}")
-               self.process_factors(mem_external_factors, "external factors", f"external factor {simulation.id}")
-            else:
-               print(f"No external factors found for simulation {simulation.id}")
-            mem_institutional_factors = simulation_data.mem_institutional_factors.get(simulation.id)
-            if mem_institutional_factors:
-               print(f"Processing institutional factors for simulation {simulation.id}")
-               self.process_factors(mem_institutional_factors, "institutionsl factors", f"institutional factor {simulation.id}")
-            else:
-               print(f"No institutional factors found for simulation {simulation.id}")
          
-            # Uncomment when ready
-            score = self.sim_eng.calculate_performance(mem_internal_factors=mem_internal_factors, mem_external_factors=mem_external_factors, mem_institutional_factors=mem_institutional_factors)
-
+         for simulation in simulations:
+            for student in students:
+               
+               print(simulation.id)
+               # Get the simulation data for the current simulation
+               mem_internal_factors = simulation_data.mem_internal_factors.get(simulation.id)
+               if mem_internal_factors:
+                  print(f"Processing internal factors for simulation {simulation.id}")
+                  self.process_factors(mem_internal_factors, "internal factors", f"internal factor {simulation.id}")
+               else:
+                  print(f"No internal factors found for simulation {simulation.id}")
+               mem_external_factors = simulation_data.mem_external_factors.get(simulation.id)
+               if mem_external_factors:
+                  print(f"Processing external factors for simulation {simulation.id}")
+                  self.process_factors(mem_external_factors, "external factors", f"external factor {simulation.id}")
+               else:
+                  print(f"No external factors found for simulation {simulation.id}")
+               mem_institutional_factors = simulation_data.mem_institutional_factors.get(simulation.id)
+               if mem_institutional_factors:
+                  print(f"Processing institutional factors for simulation {simulation.id}")
+                  self.process_factors(mem_institutional_factors, "institutionsl factors", f"institutional factor {simulation.id}")
+               else:
+                  print(f"No institutional factors found for simulation {simulation.id}")
             
-            result.append({
-               'simulation_id': simulation.id, 
-               'score': score
-            })
+               # Uncomment when ready
+               score = self.sim_eng.calculate_performance(mem_internal_factors=mem_internal_factors, mem_external_factors=mem_external_factors, mem_institutional_factors=mem_institutional_factors)
+
+                  
+               result.append({
+                  'simulation_id': simulation.id, 
+                  'score': score
+               })
          
          print(result)
          # return {'status':'success' , 'result': result}  
@@ -110,7 +114,7 @@ class SimulationService:
       except Exception as e:
          result.append({ # type: ignore
             'simulation_id': simulation.id, # type: ignore
-            # 'student_id': student.id,
+            
             'error': str(e)
          })
 
