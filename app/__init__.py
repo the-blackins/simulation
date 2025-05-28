@@ -24,8 +24,9 @@ def create_app():
     from flask_migrate import Migrate
     migrate = Migrate()
 
-    db.init_app(app)
-    migrate.init_app(app, db)
+    db.init_app(app)#type: ignore
+    # Initialize the database with the app
+    migrate.init_app(app, db) #type: ignore
 
     
     cors.init_app(app)
