@@ -60,13 +60,16 @@ def submit_simulation_form():
         return jsonify({'status': 'error', 'message': f'Server error: {str(e)}'}), 500
 
 
-
 @simulate_bp.route('/load-memory')
 def load_memory():
     try:       
-        from app.services import load_memory
+        global simulation_data
+        
         # Load initial data from the database
-        load_memory()
+        from app.services import  initialize_memory
+
+        simulation_data = initialize_memory()
+        print("Simulation data initialized successfully.")
 
         return 'Memory loaded successfully', 200
               
@@ -110,11 +113,18 @@ def run_simulation_step():
 
     try:
         from app.services import run_simulation
-        print("Running simulation step...")
-        run_simulation()
-        simulation_service = SimulationService()
-        chart_data = simulation_service.process_simulation()
-        return jsonify(chart_data)
+        run_simulation(simulation_data)
+        # Here you would typically run the simulation step
+        
+
+        
+
+
+        # print("Running simulation step...")
+        # run_simulation()
+        # print("Simulation step completed successfully.")
+        # return jsonify({'status': 'success', 'message': 'Simulation step completed successfully.'}), 200
+        return jsonify({'status': 'success', 'message': 'Simulation step completed successfully.'}), 200
     
     except Exception as e:
         session.rollback()

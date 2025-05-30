@@ -25,12 +25,11 @@ def create_memory_state( mem_dict):
         mem_external_factors =defaultdict(list)
         mem_internal_factors = defaultdict(list)
         count = 0
-        for f in mem_dict.get("institutional_factors", []):
 
+        for f in mem_dict.get("institutional_factors", []):
             student_ids = tuple(student.id for student in f.simulation.students)
-            print(f"student_ids: {student_ids}")
             { 
-            mem_institutional_factors[(f.simulation.id, student_ids[count])].append( 
+            mem_institutional_factors[(f.simulation.id, student_ids)].append( 
                  MemInstitutionalFactor(
                     id=f.id,
                     class_size=f.class_size,
@@ -43,7 +42,6 @@ def create_memory_state( mem_dict):
                     peer_influence=f.peer_influence
                 )
             )}, 
-            count += 1
         for f in mem_dict.get("internal_factors", []):
             student_ids = tuple(student.id for student in f.simulation.students)
             mem_internal_factors[(f.simulation.id, student_ids)].append( 
@@ -93,13 +91,13 @@ def create_memory_state( mem_dict):
 
 def merge_state(base: SimulationState, new: SimulationState):
     for k, v in new.mem_internal_factors.items():
-        base.mem_internal_factors[k[0]].extend(v)
+        base.mem_internal_factors[k].extend(v)
     
     for k, v in new.mem_external_factors.items():
-        base.mem_external_factors[k[0]]. extend(v)
+        base.mem_external_factors[k]. extend(v)
     
     for k, v in new.mem_institutional_factors.items():
-        base.mem_institutional_factors[k[0]].extend(v)
+        base.mem_institutional_factors[k].extend(v)
     return base
 
 

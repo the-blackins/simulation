@@ -4,6 +4,7 @@ from .simulation_engine import SimulationEngine
 from flask import jsonify
 from .memory_state import create_memory_state
 from dataclasses import asdict
+from typing import Dict, Tuple, Any
 
 
 
@@ -47,15 +48,14 @@ class SimulationService:
       
       
 # processs factors
-   def process_factors(self, factors, factor_type, identifier):
+   def process_factors(self, factor, factor_type, identifier):
       """Process factors if they are an InstrumentedList."""
       try:  
             count = 0
-            if factors:
-               for factor in factors:
-                  # datatype of factor is an object of a data class
-                  self.sim_eng.update_single_factor(factor)
-                  count += 1
+            if factor:
+               
+               self.sim_eng.update_single_factor(factor)
+               count += 1
                print(f"Processed {count} {factor_type} for {identifier}")
                   # print(f"{factor} processing")
             else:
@@ -63,29 +63,57 @@ class SimulationService:
       except Exception as e:
          raise RuntimeError(f"Error processing factors {str(e)}" )
 
+   # helper funtion
+   def build_lookup(self, mem_factor):
+      """Helper function to help lookup of simulation id and student id"""
+      try: 
+         print("starting lookup...")
+         count = 0  
+         flat_lookup: Dict[Tuple[int, int], Any] = {}
+         for (simulation_id , student_ids), values in mem_factor.items():
+            for value in values:
+               for student_id in student_ids:
+                  if student_id == value.id:
+                     # print(f"simulation_id: {simulation_id}, student_id: {student_id}, value: {value}")
+                     flat_lookup[simulation_id, student_id] = value
+                     count += 1
+         print("fully loaded")
+         return flat_lookup
+      except Exception as e:
+         raise RuntimeError(f"Error during lookup of factors: {str(e)}")
+
 
 # run simulation
    # import pdb; pdb.set_trace()
    def process_simulation(self, simulation_data):
       """ process students in each simulation"""
+
+      value = self.build_lookup(simulation_data.mem_internal_factors)
+      # print(value) 
+      # print(simulation_data.mem_internal_factors)
       from app.models import InstitutionalFactors
       try:
          result =[]
          simulations = self.sim_model
          students = self.student_model
-
          
+         
+
+         count = 0
          for simulation in simulations:
             for student in students:
-               
-               print(simulation.id)
-               # Get the simulation data for the current simulation
-               mem_internal_factors = simulation_data.mem_internal_factors.get(simulation.id)
-               if mem_internal_factors:
+
+               key = (simulation.id, student.id)
+
+               looked_up_data = value.get(key)
+               print(looked_up_data)
+      
+               if looked_up_data:
                   print(f"Processing internal factors for simulation {simulation.id}")
-                  self.process_factors(mem_internal_factors, "internal factors", f"internal factor {simulation.id}")
+                  self.process_factors(looked_up_data, "internal factors", f"internal factor {simulation.id}")
                else:
                   print(f"No internal factors found for simulation {simulation.id}")
+
                mem_external_factors = simulation_data.mem_external_factors.get(simulation.id)
                if mem_external_factors:
                   print(f"Processing external factors for simulation {simulation.id}")
@@ -100,7 +128,7 @@ class SimulationService:
                   print(f"No institutional factors found for simulation {simulation.id}")
             
                # Uncomment when ready
-               score = self.sim_eng.calculate_performance(mem_internal_factors=mem_internal_factors, mem_external_factors=mem_external_factors, mem_institutional_factors=mem_institutional_factors)
+               score = self.sim_eng.calculate_performance(mem_internal_factors=value, mem_external_factors=mem_external_factors, mem_institutional_factors=mem_institutional_factors)
 
                   
                result.append({
@@ -108,7 +136,7 @@ class SimulationService:
                   'score': score
                })
          
-         print(result)
+            print(result)
          # return {'status':'success' , 'result': result}  
          
       except Exception as e:
