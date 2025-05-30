@@ -11,7 +11,7 @@ def loader():
 def memory_state_population(simulation_data):
     """ initializes the memory state by loading data gotten from the database"""
     
-    return print(state_wrapper(simulation_data))
+    return state_wrapper(simulation_data)
 
 
 def load_memory():
@@ -23,15 +23,25 @@ def load_memory():
     memory_state=memory_state_population(loaded_data)
     print("Memory initialized and populated successfully")
     return memory_state
+# app/services/__init__.py
 
-
-def run_simulation():
+def initialize_memory():
+    from app import create_app
+    app = create_app()
+    with app.app_context():
+        print("Loading initial data...")
+        initial_data = loader()
+        print("Initial data loaded successfully")
+        print("Creating memory state...")
+        simulation_data = memory_state_population(initial_data)
+        print("Memory state created successfully")
+        return simulation_data
+    
+def run_simulation(simulation_data):
     """runs the simulation by loading data from the database and processing it"""
-    updated_memory = load_memory()
-    print("simulation service test...")
     simulation_service = SimulationService()
     print("Processing simulation...")
-    simulation_service.process_simulation(simulation_data=updated_memory)
+    simulation_service.process_simulation(simulation_data)
     print("Simulation run successfully")
 
 
