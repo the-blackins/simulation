@@ -59,11 +59,12 @@ def submit_simulation_form():
         print("Traceback:", traceback.format_exc())
         return jsonify({'status': 'error', 'message': f'Server error: {str(e)}'}), 500
 
+simulation_data = None
 
 @simulate_bp.route('/load-memory')
 def load_memory():
+    global simulation_data
     try:       
-        global simulation_data
         
         # Load initial data from the database
         from app.services import  initialize_memory
@@ -83,8 +84,6 @@ def load_memory():
 @simulate_bp.route('/api/simulate')
 def simulation_page():
     try:       
-        
-        print("route ohk ")
         
         return render_template('simulation.html'), 200
               
@@ -110,20 +109,16 @@ def load_chart_instance():
 def run_simulation_step():
     """run the simualtion based on university base(simulation)"""
     session = Session()
+    
 
     try:
         from app.services import run_simulation
+
+        if not simulation_data:
+            return jsonify({'status': 'error', 'message': 'Simulation data not loaded'}), 400
+    
+        # run the simulation step
         run_simulation(simulation_data)
-        # Here you would typically run the simulation step
-        
-
-        
-
-
-        # print("Running simulation step...")
-        # run_simulation()
-        # print("Simulation step completed successfully.")
-        # return jsonify({'status': 'success', 'message': 'Simulation step completed successfully.'}), 200
         return jsonify({'status': 'success', 'message': 'Simulation step completed successfully.'}), 200
     
     except Exception as e:

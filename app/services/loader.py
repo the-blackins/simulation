@@ -11,9 +11,6 @@ def load_initial_data():
         simulations = Simulation.query.all()
         # grouped_list = defaultdict(list)
         loaded_data = []
-        
-
-        
 
         for simulation in simulations:
 

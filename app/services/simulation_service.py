@@ -13,13 +13,12 @@ class SimulationService:
    
    def __init__(self):
       from app.models import Simulation, Student
+      from app import db
       self.sim_eng = SimulationEngine()
-      self.sim_model = Simulation.query.all()
+      self.sim_model = (db.session.query(Simulation).join(Simulation.students)).all()
+      
       self.student_model = Student.query.all()
-      # self.memory = create_memory_state()
-      
-      
-
+ 
 
    def chart_instance(self):
       available_simulations = self.sim_model
@@ -77,6 +76,7 @@ class SimulationService:
                      # print(f"simulation_id: {simulation_id}, student_id: {student_id}, value: {value}")
                      flat_lookup[simulation_id, student_id] = value
                      count += 1
+         
          print("fully loaded")
          return flat_lookup
       except Exception as e:
@@ -84,27 +84,21 @@ class SimulationService:
 
 
 # run simulation
-   # import pdb; pdb.set_trace()
    def process_simulation(self, simulation_data):
       """ process students in each simulation"""
 
       value = self.build_lookup(simulation_data.mem_internal_factors)
-      # print(value) 
-      # print(simulation_data.mem_internal_factors)
-      from app.models import InstitutionalFactors
+      
       try:
          result =[]
          simulations = self.sim_model
-         students = self.student_model
          
-         
-
-         count = 0
          for simulation in simulations:
-            for student in students:
+            for student in simulation.students:
 
                key = (simulation.id, student.id)
-
+               print(f"Processing simulation {simulation.id} for student {student.id}")   
+               
                looked_up_data = value.get(key)
                print(looked_up_data)
       
@@ -131,7 +125,7 @@ class SimulationService:
                score = self.sim_eng.calculate_performance(mem_internal_factors=value, mem_external_factors=mem_external_factors, mem_institutional_factors=mem_institutional_factors)
 
                   
-               result.append({
+               result.append({ 
                   'simulation_id': simulation.id, 
                   'score': score
                })

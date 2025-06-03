@@ -193,7 +193,7 @@ class StudentSimulation {
             console.log(data)
             
             if (data.status === 'success') {
-                // this.updateCharts(data.results);
+                this.updateCharts(data.results);
                 
             } else {
                 console.error('Simulation step failed:', data.error);
