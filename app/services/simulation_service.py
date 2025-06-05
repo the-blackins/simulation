@@ -41,10 +41,7 @@ class SimulationService:
          return chart_arr
 
       except Exception as e:
-         raise   RuntimeError( f'An error occured {e}') 
-
-   
-      
+         raise   RuntimeError( f'An error occured {e}')     
       
 # processs factors
    def process_factors(self, factor, factor_type, identifier):
@@ -63,22 +60,48 @@ class SimulationService:
          raise RuntimeError(f"Error processing factors {str(e)}" )
 
    # helper funtion
-   def build_lookup(self, mem_factor):
+   def build_lookup(self, mem_factor, mem_factor_identitier):
       """Helper function to help lookup of simulation id and student id"""
       try: 
          print("starting lookup...")
          count = 0  
-         flat_lookup: Dict[Tuple[int, int], Any] = {}
-         for (simulation_id , student_ids), values in mem_factor.items():
-            for value in values:
-               for student_id in student_ids:
-                  if student_id == value.id:
-                     # print(f"simulation_id: {simulation_id}, student_id: {student_id}, value: {value}")
-                     flat_lookup[simulation_id, student_id] = value
-                     count += 1
+         internal_flat_lookup: Dict[Tuple[int, int], Any] = {}
+         external_flat_lookup: Dict[Tuple[int, int], Any] = {}
+         institutional_flat_lookup: Dict[Tuple[int, int], Any] = {}
+
+         if mem_factor_identitier == "mem_internal_factor":
+            for (simulation_id , student_ids), values in mem_factor.items():
+               for value in values:
+                  for student_id in student_ids:
+                     if student_id == value.id:
+                        internal_flat_lookup[simulation_id, student_id] = value
+                        count += 1
+            
+            print(" internal flat lookup fully loaded")
+            return internal_flat_lookup
          
-         print("fully loaded")
-         return flat_lookup
+         if mem_factor_identitier == "mem_external_factor":
+            for (simulation_id , student_ids), values in mem_factor.items():
+               for value in values:
+                  for student_id in student_ids:
+                     if student_id == value.id:
+                        external_flat_lookup[simulation_id, student_id] = value
+                        count += 1
+            
+            print("external factors flat lookup fully loaded")
+            return external_flat_lookup
+
+         if mem_factor_identitier == "mem_institutional_factor":
+            for (simulation_id , student_ids), values in mem_factor.items():
+               for value in values:
+                  for student_id in student_ids:
+                     if student_id == value.id:
+                        institutional_flat_lookup[simulation_id, student_id] = value
+                        count += 1
+            
+            print("institutional flat lookup fully loaded")
+            return institutional_flat_lookup
+
       except Exception as e:
          raise RuntimeError(f"Error during lookup of factors: {str(e)}")
 
@@ -87,7 +110,7 @@ class SimulationService:
    def process_simulation(self, simulation_data):
       """ process students in each simulation"""
 
-      value = self.build_lookup(simulation_data.mem_internal_factors)
+      value = self.build_lookup(simulation_data.mem_internal_factors, mem_factor_identitier="mem_internal_factor")
       
       try:
          result =[]
@@ -109,7 +132,7 @@ class SimulationService:
                   self.process_factors(looked_up_data, "internal factors", f"internal factor {simulation.id}")
                else:
                   print(f"No internal factors found for simulation {simulation.id}")
-
+               print(looked_up_data)
                mem_external_factors = simulation_data.mem_external_factors.get(simulation.id)
                if mem_external_factors:
                   print(f"Processing external factors for simulation {simulation.id}")
