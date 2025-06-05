@@ -3,6 +3,7 @@ import json
 import traceback
 from sqlalchemy.orm import Session
 from datetime import datetime
+from app.services.cache import cache_simulation_data, get_cached_simulation_data
 
 from flask import (Blueprint, jsonify, redirect, render_template, request,
                    url_for)
@@ -59,17 +60,18 @@ def submit_simulation_form():
         print("Traceback:", traceback.format_exc())
         return jsonify({'status': 'error', 'message': f'Server error: {str(e)}'}), 500
 
-simulation_data = None
+
 
 @simulate_bp.route('/load-memory')
 def load_memory():
-    global simulation_data
+    """Load initial data into memory for simulation."""
     try:       
-        
         # Load initial data from the database
         from app.services import  initialize_memory
 
         simulation_data = initialize_memory()
+        cache_simulation_data(simulation_data)
+        print("Simulation data loaded into cache successfully.")
         print("Simulation data initialized successfully.")
 
         return 'Memory loaded successfully', 200
@@ -109,106 +111,25 @@ def load_chart_instance():
 def run_simulation_step():
     """run the simualtion based on university base(simulation)"""
     session = Session()
-    
+
 
     try:
         from app.services import run_simulation
 
+        # Retrieve simulation data from cache
+        simulation_data = get_cached_simulation_data()
         if not simulation_data:
-            return jsonify({'status': 'error', 'message': 'Simulation data not loaded'}), 400
-    
+            # If cache is empty, load from database
+            simulation_data = loader.load_simulation_data(session)
+            cache_simulation_data(simulation_data)  # Cache the loaded data
+            print("Simulation data loaded from database and cached successfully.")
+
+        print("simulation data retrieved from cache successfully.")
         # run the simulation step
         run_simulation(simulation_data)
         return jsonify({'status': 'success', 'message': 'Simulation step completed successfully.'}), 200
     
     except Exception as e:
-        session.rollback()
+        print(f"Error running simulation step: {str(e)}")
         return jsonify(f'error {str(e)}'), 500
-    # try:
-        # Query all students
-        # students = Student.query.all()
-        # universities = University.query.all()
-
-       
-        # # print(students)
-        # results = []
-        # print(chart_instance())
-        # for student in students:
-        #     university = next((u for u in universities if u.id == student.university_id), None)
-        #     if not university:
-        #         print(f"No matching university found for student {student.id}")
-        #         continue
-
-        #     def process_factors(factors, factor_type, identifier):
-        #         """Process factors if they are an InstrumentedList."""
-        #         if isinstance(factors, InstrumentedList):
-        #             if factors:
-        #                 for factor in factors:
-        #                     simulation_engine.update_factors(factor)
-        #             else:
-        #                 print(f"No {factor_type} found for {identifier}")
-        #         else:
-        #             # Handle single object case
-        #             simulation_engine.update_factors(factors)
-
-        #     # Processing each type of factors
-        #     university_factors = university.institutional_factors
-        #     process_factors(university_factors, "institutional factors", f"university {university.id}")
-
-        #     external_factors = student.external_factors
-        #     process_factors(external_factors, "external factors", f"student {student.id}")
-
-        #     internal_factors = student.internal_factors
-        #     process_factors(internal_factors, "internal factors", f"student {student.id}")
- 
-        #     # if not (student.external_factors and student.internal_factors and student.university_id):
-        #     #     print(f"Missing required data for student {student.id}")
-        #     #     continue
-        #     score = simulation_engine. calculate_performance(student)
-
-        #     # Create and save test result
-        #     test_result = TestResult(student_id=student.id, score=score)
-        #     db.session.add(test_result)   
-
-        #     # Add result to the response
-        #     results.append({
-        #         'student_id': student.id,
-        #         'score': score,
-        #         'university': student.university_id
-        #     })
-        #     # Commit changes
-        #     db.session.commit()
-        #     return jsonify({'status': 'success', 'results': results})
-    # except Exception as e:
-    #     print(f"Error processing student {student.id}: {str(e)}")  # Debugging
-        
-
-
-    # # Return results
-
-    # except Exception as e:
-    #     db.session.rollback()
-    #     print(f"Simulation step error: {str(e)}")  # Debugging
-    #     return jsonify({'status': 'error', 'message': str(e)}), 500
-
-
-# # Add an error handler for 404
-# @simulate_bp.errorhandler(404)
-# def not_found_error(error):
-#     return jsonify({'status': 'error', 'message': 'Endpoint not found'}), 404# Add this temporary route to verify your database has data
-
-# @simulate_bp.route('/check_data')
-# def check_data():
-#     from app.models import Student
-#     students = Student.query.all()
-#     return jsonify({
-#         'student_count': len(students),
-#         'students': [{
-#             'id': s.id,
-#             'has_external': bool(s.external_factors),
-#             'has_internal': bool(s.internal_factors),
-#             'has_university': bool(s.university_id)
-#         } for s in students]
-#     })
-
-                          
+    
