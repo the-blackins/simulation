@@ -36,7 +36,20 @@ def initialize_memory():
         simulation_data = memory_state_population(initial_data)
         print("Memory state created successfully")
         return simulation_data
-    
+
+def mem_factors_flat_lookup(simulation_data):
+    simulation_service= SimulationService()
+
+    internal_factor_data = simulation_data.mem_internal_factors
+    internal_factors_flat_lookup = simulation_service.build_lookup(internal_factor_data, mem_factor_identitier="mem_internal_factor")
+
+    external_factor_data = simulation_data.mem_external_factors
+    external_factor_flat_lookup = simulation_service.build_lookup(external_factor_data, mem_factor_identitier="mem_external_factor")
+
+    institutional_factor_data = simulation_data.mem_institutional_factors
+    institutional_factor_flat_lookup = simulation_service.build_lookup(institutional_factor_data, mem_factor_identitier="mem_institutional_factor")
+
+    return internal_factors_flat_lookup, external_factor_flat_lookup, institutional_factor_flat_lookup
 def run_simulation(simulation_data):
     """runs the simulation by loading data from the database and processing it"""
     simulation_service = SimulationService()

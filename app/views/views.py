@@ -9,7 +9,7 @@ from flask import (Blueprint, jsonify, redirect, render_template, request,
                    url_for)
 
 from app.services.simulation_service import SimulationService
-from app.services import  loader, memory_state_population
+from app.services import  loader, mem_factors_flat_lookup
 
 form_bp = Blueprint('form', __name__)
 home_bp = Blueprint('home', __name__)
@@ -81,6 +81,13 @@ def load_memory():
         traceback.print_exc()
         return f'Error: {str(e)}', 500
 
+@simulate_bp.route('/build-lookup')
+def build_flat_lookup():
+    """Build flat lookup from the simulation data"""
+    try:
+        pass
+    except Exception as e:
+        pass
 
 
 @simulate_bp.route('/api/simulate')
@@ -111,7 +118,6 @@ def load_chart_instance():
 def run_simulation_step():
     """run the simualtion based on university base(simulation)"""
     session = Session()
-
 
     try:
         from app.services import run_simulation
