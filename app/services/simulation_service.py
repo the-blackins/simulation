@@ -93,7 +93,9 @@ class SimulationService:
          result =[]
          simulations = self.sim_model
          
+         print(simulations)
          for simulation in simulations:
+            print(simulation.id)
             for student in simulation.students:
 
                key = (simulation.id, student.id)
