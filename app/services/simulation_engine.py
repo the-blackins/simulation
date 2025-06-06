@@ -26,7 +26,7 @@ class SimulationEngine:
                     delta = random.uniform(-step_size, step_size)
                     new_value = value + delta 
                     setattr(obj, attr, new_value)
-                    print(f"Updated {attr} from {value} to {new_value}")
+                    # print(f"Updated {attr} from {value} to {new_value}")
                 else:
                     print(f"Skipping non-float attribute: {attr} with value {value}")
 
