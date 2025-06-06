@@ -137,8 +137,8 @@ def run_simulation_step():
 
         print("simulation data retrieved from cache successfully.")
         # run the simulation step
-        run_simulation()
-        return jsonify({'status': 'success', 'message': 'Simulation step completed successfully.'}), 200
+        result = run_simulation()
+        return jsonify({'status': 'success', 'message': 'Simulation step completed successfully.', 'result': result }), 200
     
     except Exception as e:
         print(f"Error running simulation step: {str(e)}")

@@ -69,8 +69,9 @@ def run_simulation():
     try:
         simulation_service = SimulationService()
         print("Processing simulation...")
-        simulation_service.process_simulation()
+        processed_simulation = simulation_service.process_simulation()
         print("Simulation run successfully")
+        return processed_simulation
     except Exception as e:
         return str(e)
 
