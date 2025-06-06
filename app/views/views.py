@@ -9,7 +9,7 @@ from flask import (Blueprint, jsonify, redirect, render_template, request,
                    url_for)
 
 from app.services.simulation_service import SimulationService
-from app.services import  loader, mem_factors_flat_lookup
+from app.services import  loader
 
 form_bp = Blueprint('form', __name__)
 home_bp = Blueprint('home', __name__)
@@ -72,24 +72,25 @@ def load_memory():
         simulation_data = initialize_memory()
         cache_simulation_data(simulation_data)
         print("Simulation data loaded into cache successfully.")
-        print("Simulation data initialized successfully.")
 
+        build_flat_lookup()
         return 'Memory loaded successfully', 200
               
     except Exception as e:
         import traceback
         traceback.print_exc()
         return f'Error: {str(e)}', 500
-
-@simulate_bp.route('/build-lookup')
+@simulate_bp.route('/build-lookup', methods=['GET'])
 def build_flat_lookup():
     """Build flat lookup from the simulation data"""
-    try:
-        pass
+    try:     
+        from app.services import mem_factors_flat_lookup
+        mem_factors_flat_lookup()
+        return jsonify({'status': 'success', 'message': 'Flat lookup built and cached successfully'}), 200
     except Exception as e:
-        pass
-
-
+        import traceback
+        traceback.print_exc()
+        return jsonify({'status': 'error', 'message': f'Error building flat lookup: {str(e)}'}), 500
 @simulate_bp.route('/api/simulate')
 def simulation_page():
     try:       
