@@ -38,7 +38,7 @@ def create_app():
     # Register blueprints (if any)
     # Register the blueprint
     app.register_blueprint(home_bp)
-    app.register_blueprint(form_bp)
+    app.register_blueprint(form_bp, url_prefix='/form')
     app.register_blueprint(simulate_bp, url_prefix='/simulation')
 
     # app.register_blueprint(seeding_blueprint)

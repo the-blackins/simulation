@@ -25,7 +25,7 @@ def landing_page():
 def simulation_setup():
     return render_template('form.html')
 
-@form_bp.route('/api/submit-simulation', methods=['POST'])
+@form_bp.route('/submit-simulation', methods=['POST'])
 def submit_simulation_form():
     try:         
         from database_population.seeds import seed_data  # Import directly since it's used
@@ -41,28 +41,24 @@ def submit_simulation_form():
                 return jsonify({'status': 'error', 'message': f'Missing required field: {field}'}), 400
         
 
+
         # Seed data with universities and student count
         seed_data(data['universities'], data['numStudents'])
 
-        load_memory()
+    
         # Log simulation details
         print(f"Simulation created with: students={data['numStudents']}, "
               f"simulations={data['numSimulations']}, level={data['finalLevel']}, universities={data['universities']}")
-        return jsonify({
-            'status': 'success',
-            'message': 'Simulation created successfully',
-            'redirect_url': url_for('simulate.simulation_page',  _external=True)
-        }), 200 
-    
+        return redirect(url_for('form.load_memory'))
         
     except Exception as e:
         print("Server error:", str(e))
         print("Traceback:", traceback.format_exc())
         return jsonify({'status': 'error', 'message': f'Server error: {str(e)}'}), 500
+ 
 
 
-
-@simulate_bp.route('/load-memory')
+@form_bp.route('/load-memory', methods = ['GET'])
 def load_memory():
     """Load initial data into memory for simulation."""
     try:       
@@ -73,25 +69,33 @@ def load_memory():
         cache_simulation_data(simulation_data)
         print("Simulation data loaded into cache successfully.")
 
-        build_flat_lookup()
-        return 'Memory loaded successfully', 200
+        
+        return redirect(url_for('form.build_flat_lookup'))
               
     except Exception as e:
         import traceback
         traceback.print_exc()
         return f'Error: {str(e)}', 500
-@simulate_bp.route('/build-lookup', methods=['GET'])
+    
+@form_bp.route('/build-lookup', methods=['GET'])
 def build_flat_lookup():
     """Build flat lookup from the simulation data"""
     try:     
         from app.services import mem_factors_flat_lookup
         mem_factors_flat_lookup()
-        return jsonify({'status': 'success', 'message': 'Flat lookup built and cached successfully'}), 200
+        
+        return jsonify({
+                'status': 'success',
+                'message': 'Simulation created successfully',
+                'redirect_url': url_for('simulate.simulation_page',  _external=True)
+            }), 200 
+        
     except Exception as e:
         import traceback
         traceback.print_exc()
         return jsonify({'status': 'error', 'message': f'Error building flat lookup: {str(e)}'}), 500
-@simulate_bp.route('/api/simulate')
+    
+@simulate_bp.route('/simulate')
 def simulation_page():
     try:       
         

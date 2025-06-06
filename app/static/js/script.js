@@ -161,7 +161,7 @@ class UniversitySimulationForm {
         };
 
         try {
-            const response = await fetch('/api/submit-simulation', {
+            const response = await fetch('/form/submit-simulation', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
