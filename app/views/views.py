@@ -83,7 +83,7 @@ def build_flat_lookup():
     try:     
         from app.services import mem_factors_flat_lookup
         mem_factors_flat_lookup()
-        
+
         return jsonify({
                 'status': 'success',
                 'message': 'Simulation created successfully',
@@ -137,7 +137,7 @@ def run_simulation_step():
 
         print("simulation data retrieved from cache successfully.")
         # run the simulation step
-        run_simulation(simulation_data)
+        run_simulation()
         return jsonify({'status': 'success', 'message': 'Simulation step completed successfully.'}), 200
     
     except Exception as e:

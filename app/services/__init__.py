@@ -2,8 +2,7 @@ from .memory_state import state_wrapper
 from .loader import load_initial_data
 from .simulation_service import SimulationService
 from app.services.cache import get_cached_simulation_data, cache_lookup_data
-
-
+from app.utils.build_flat_lookup import build_lookup
 
 
 
@@ -44,32 +43,36 @@ def initialize_memory():
 def mem_factors_flat_lookup():
 
         simulation_data = get_cached_simulation_data()
-        simulation_service= SimulationService()
+        
+        
 
         print("Building flat lookup for memory factors...")
         if not simulation_data:
             raise RuntimeError("No simulation data found in cache. Please load memory first.")
         # Build flat lookup for each factor type
         internal_factor_data = simulation_data.mem_internal_factors
-        internal_factors_flat_lookup = simulation_service.build_lookup(internal_factor_data, mem_factor_identitier="mem_internal_factor")
+        internal_factors_flat_lookup = build_lookup(mem_factor=internal_factor_data, mem_factor_identitier="mem_internal_factor")
         cache_lookup_data(internal_factors_flat_lookup, mem_factor_identifier="mem_internal_factor")
 
         institutional_factor_data = simulation_data.mem_institutional_factors
-        institutional_factors_flat_lookup = simulation_service.build_lookup(institutional_factor_data, mem_factor_identitier="mem_institutional_factor")
+        institutional_factors_flat_lookup = build_lookup(mem_factor=institutional_factor_data, mem_factor_identitier="mem_institutional_factor")
         cache_lookup_data(institutional_factors_flat_lookup, mem_factor_identifier="mem_institutional_factor" )
         
 
         external_factor_data = simulation_data.mem_external_factors
-        external_factors_flat_lookup = simulation_service.build_lookup(external_factor_data, mem_factor_identitier="mem_external_factor")
+        external_factors_flat_lookup = build_lookup(mem_factor=external_factor_data, mem_factor_identitier="mem_external_factor")
         cache_lookup_data(external_factors_flat_lookup, mem_factor_identifier="mem_external_factor")
         return "Flat lookup built and cahed successfully"
 
-def run_simulation(simulation_data):
+def run_simulation():
     """runs the simulation by loading data from the database and processing it"""
-    simulation_service = SimulationService()
-    print("Processing simulation...")
-    simulation_service.process_simulation(simulation_data)
-    print("Simulation run successfully")
+    try:
+        simulation_service = SimulationService()
+        print("Processing simulation...")
+        simulation_service.process_simulation()
+        print("Simulation run successfully")
+    except Exception as e:
+        return str(e)
 
 
 
