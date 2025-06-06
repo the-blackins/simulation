@@ -20,3 +20,28 @@ def get_cached_simulation_data():
 
     else:
         return None
+    
+def cache_lookup_data(mem_factor, mem_factor_identifier):
+    """cache mem factor lookup data"""
+    try:
+
+        serialized_data = pickle.dumps(mem_factor)
+        redis_client.set(mem_factor_identifier, serialized_data)
+        print(f"successfully cached: {mem_factor_identifier}")
+    except Exception as e:
+        raise RuntimeError(f"Error caching lookup data: {str(e)}")
+    
+def get_cached_lookup_data(mem_factor_identifier):
+    try:
+
+        serialized_data = redis_client.get(mem_factor_identifier)
+
+        print("Retrieving cahed lookup data...")
+        if serialized_data:
+            return pickle.loads(serialized_data)
+    
+    except Exception as e:
+        raise RuntimeError(f"Error retrieving cached lookup data: {str(e)}")
+
+        
+
