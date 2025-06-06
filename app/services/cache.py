@@ -36,7 +36,7 @@ def get_cached_lookup_data(mem_factor_identifier):
 
         serialized_data = redis_client.get(mem_factor_identifier)
 
-        print("Retrieving cahed lookup data...")
+        print(f"Retrieving cahed lookup data for {mem_factor_identifier}...")
         if serialized_data:
             return pickle.loads(serialized_data)
     

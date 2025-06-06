@@ -13,8 +13,7 @@ class SimulationService:
       from app.models import Simulation, Student
       from app import db
       self.sim_eng = SimulationEngine()
-      self.sim_model = (db.session.query(Simulation).join(Simulation.students)).all()
-      self.sim_model_test = Simulation.query.all()
+      self.sim_model = (db.session.query(Simulation).join(Simulation.students).order_by(Simulation.id)).all()
       self.student_model = Student.query.all()
  
 
@@ -61,24 +60,17 @@ class SimulationService:
 # run simulation
    def process_simulation(self):
       """ process students in each simulation"""
-
-
       internal_factor_data_lookup = get_cached_lookup_data(mem_factor_identifier="mem_internal_factor")
       external_factor_data_lookup = get_cached_lookup_data(mem_factor_identifier="mem_external_factor")
       institutional_factor_data_lookup = get_cached_lookup_data(mem_factor_identifier="mem_institutional_factor")
-      
-
-      # print(institutional_factor_data_lookup)
 
       try:
          result =[]
          simulations = self.sim_model
-         test_simulation = self.sim_model_test
          
-         print(test_simulation)
-         print(simulations)
+         # print(simulations)
          for simulation in simulations:
-            print(simulation.id)
+            # print(simulation.id)
             for student in simulation.students:
 
                key = (simulation.id, student.id)
@@ -89,7 +81,7 @@ class SimulationService:
                # print(internal_factor_looked_up_data)
       
                if internal_factor_looked_up_data:
-                  print(f"Processing internal factors for simulation {simulation.id}")
+                  # print(f"Processing internal factors for simulation {simulation.id}")
                   self.process_factors(internal_factor_looked_up_data, "internal factors", f"internal factor {simulation.id}")
                else:
                   print(f"No internal factors found for simulation {simulation.id}")
@@ -98,7 +90,7 @@ class SimulationService:
                # external factors
                external_factor_looked_up_data = external_factor_data_lookup.get(key)
                if external_factor_looked_up_data:
-                  print(f"Processing external factors for simulation {simulation.id}")
+                  # print(f"Processing external factors for simulation {simulation.id}")
                   self.process_factors(external_factor_looked_up_data, "external factors", f"external factor {simulation.id}")
                else:
                   print(f"No external factors found for simulation {simulation.id}")
@@ -106,27 +98,25 @@ class SimulationService:
                # institutional factors 
                institutional_factor_looked_up_data = institutional_factor_data_lookup.get(key)
                if institutional_factor_looked_up_data:
-                  print(f"Processing institutional factors for simulation {simulation.id}")
+                  # print(f"Processing institutional factors for simulation {simulation.id}")
                   self.process_factors(institutional_factor_looked_up_data, "institutionsl factors", f"institutional factor {simulation.id}")
                else:
                   print(f"No institutional factors found for simulation {simulation.id}")
             
 
 
-               print("calculating student performance")
             
                # Uncomment when ready
                score = self.sim_eng.calculate_performance(mem_internal_factors=internal_factor_looked_up_data , mem_external_factors=external_factor_looked_up_data, mem_institutional_factors=institutional_factor_looked_up_data)
 
-               print(score)
+               # print(score)
                result.append({ 
                   'simulation_id': simulation.id, 
                   'Student_id': student.id,
                   'score': score
                })
          
-         print(result)
-         # return {'status':'success' , 'result': result}  
+         return result
          
       except Exception as e:
          result.append({ # type: ignore

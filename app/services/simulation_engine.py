@@ -67,29 +67,29 @@ class SimulationEngine:
         """Calculate student performance based on all factors"""
         try:
             # Handle potential None values or empty lists
-            for mem_external_factor in mem_external_factors:
-                external_impact = (self.calculate_factor_impact(mem_external_factor) 
-                                if mem_external_factor else 1.0)
             
-            for mem_internal_factor in mem_internal_factors:
-                internal_impact = (self.calculate_factor_impact(mem_internal_factor) 
-                                if  mem_internal_factor else 1.0)
+            external_impact = (self.calculate_factor_impact(mem_external_factors) 
+                            if mem_external_factors else 1.0)
             
-            for mem_institutional_factor in mem_institutional_factors:
-                institutional_impact = (self.calculate_factor_impact(mem_institutional_factor) 
-                                    if mem_institutional_factor else 1.0)
-
+            internal_impact = (self.calculate_factor_impact(mem_internal_factors) 
+                            if  mem_internal_factors else 1.0)
+            
+            institutional_impact = (self.calculate_factor_impact(mem_institutional_factors) 
+                                if mem_institutional_factors else 1.0)
+            
             weighted_impact = (
                 external_impact * self.FACTOR_WEIGHTS['external'] +
                 internal_impact * self.FACTOR_WEIGHTS['internal'] +
                 institutional_impact * self.FACTOR_WEIGHTS['institutional']
             )
 
+            
+
             random_variation = random.uniform(-self.RANDOM_VARIATION, self.RANDOM_VARIATION)
             final_score = self.BASE_SCORE * weighted_impact + random_variation
             
-            return final_score
+            return max(0, min(100, final_score))
         except Exception as e:
             raise RuntimeError(f"error calculating performance: {str(e)}")
 
-        # return max(0, min(100, final_score))
+        # 
