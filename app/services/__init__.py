@@ -3,84 +3,96 @@ from .loader import load_initial_data
 from .simulation_service import SimulationService
 from app.services.cache import get_cached_simulation_data, cache_lookup_data
 from app.utils.build_flat_lookup import build_lookup
-
+from log.logger import logger
 
 
 def loader():
-    """loads data from the database"""
-    mem_loader = load_initial_data()
-    return mem_loader
+    """Loads data from the database."""
+    return load_initial_data()
+
 
 def memory_state_population(simulation_data):
-    """ initializes the memory state by loading data gotten from the database"""
-    
+    """Initializes the memory state by loading data gotten from the database."""
     return state_wrapper(simulation_data)
 
 
 def load_memory():
-    """runs the simulation by loading data from the database and processing it"""
+    """Runs the simulation by loading data from the database and processing it."""
+    logger.info("Starting memory population...")
+    try:
+        loaded_data = loader()
+        memory_state = memory_state_population(loaded_data)
+        logger.info("Memory initialized and populated successfully.")
+        return memory_state
+    except Exception as e:
+        logger.exception("Failed to load and initialize memory.")
+        raise
 
-    print("Populating memory...")
-    # Load initial data from the database       
-    loaded_data = loader()
-    memory_state=memory_state_population(loaded_data)
-    print("Memory initialized and populated successfully")
-    return memory_state
-# app/services/__init__.py
 
 def initialize_memory():
+    """Initialize memory within app context."""
     from app import create_app
     app = create_app()
     with app.app_context():
-        print("Loading initial data...")
-        initial_data = loader()
-        print("Initial data loaded successfully")
-        print("Creating memory state...")
-        simulation_data = memory_state_population(initial_data)
-        print("Memory state created successfully")
-        return simulation_data
+        try:
+            logger.info("Loading initial data...")
+            initial_data = loader()
+            logger.info("Initial data loaded successfully.")
+
+            logger.info("Creating memory state...")
+            simulation_data = memory_state_population(initial_data)
+            logger.info("Memory state created successfully.")
+
+            return simulation_data
+        except Exception as e:
+            logger.exception("Error during memory initialization.")
+            raise
+
 
 def mem_factors_flat_lookup():
-
+    """Build flat lookup for each memory factor type and cache the result."""
+    try:
         simulation_data = get_cached_simulation_data()
-        
-        
-
-        print("Building flat lookup for memory factors...")
         if not simulation_data:
+            logger.warning("No simulation data found in cache. Please load memory first.")
             raise RuntimeError("No simulation data found in cache. Please load memory first.")
-        # Build flat lookup for each factor type
+
+        logger.info("Building flat lookup for memory factors...")
+
         internal_factor_data = simulation_data.mem_internal_factors
-        internal_factors_flat_lookup = build_lookup(mem_factor=internal_factor_data, mem_factor_identitier="mem_internal_factor")
+        internal_factors_flat_lookup = build_lookup(
+            mem_factor=internal_factor_data, mem_factor_identitier="mem_internal_factor"
+        )
         cache_lookup_data(internal_factors_flat_lookup, mem_factor_identifier="mem_internal_factor")
 
         institutional_factor_data = simulation_data.mem_institutional_factors
-        institutional_factors_flat_lookup = build_lookup(mem_factor=institutional_factor_data, mem_factor_identitier="mem_institutional_factor")
-        cache_lookup_data(institutional_factors_flat_lookup, mem_factor_identifier="mem_institutional_factor" )
-        
+        institutional_factors_flat_lookup = build_lookup(
+            mem_factor=institutional_factor_data, mem_factor_identitier="mem_institutional_factor"
+        )
+        cache_lookup_data(institutional_factors_flat_lookup, mem_factor_identifier="mem_institutional_factor")
 
         external_factor_data = simulation_data.mem_external_factors
-        external_factors_flat_lookup = build_lookup(mem_factor=external_factor_data, mem_factor_identitier="mem_external_factor")
+        external_factors_flat_lookup = build_lookup(
+            mem_factor=external_factor_data, mem_factor_identitier="mem_external_factor"
+        )
         cache_lookup_data(external_factors_flat_lookup, mem_factor_identifier="mem_external_factor")
-        return "Flat lookup built and cahed successfully"
+
+        logger.info("Flat lookup built and cached successfully.")
+        return "Flat lookup built and cached successfully."
+
+    except Exception as e:
+        logger.exception("Failed to build flat lookup.")
+        raise
+
 
 def run_simulation():
-    """runs the simulation by loading data from the database and processing it"""
+    """Runs the simulation by processing cached data."""
+    simulation_service = SimulationService()
     try:
-        simulation_service = SimulationService()
-        print("Processing simulation...")
+        logger.info("Processing simulation...")
         processed_simulation = simulation_service.process_simulation()
-        print("Simulation run successfully")
+        logger.info("Simulation run successfully.")
         return processed_simulation
     except Exception as e:
+        logger.exception("Error occurred during simulation run.")
         return str(e)
-
-
-
-
-
-    
-
-
-
-

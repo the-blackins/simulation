@@ -1,4 +1,5 @@
 import logging
+from log.logger import logger
 
 from flask import Flask
 # from .views.seeding_view import seeding_blueprint
@@ -38,7 +39,7 @@ def create_app():
     # Register blueprints (if any)
     # Register the blueprint
     app.register_blueprint(home_bp)
-    app.register_blueprint(form_bp, url_prefix='/form')
+    app.register_blueprint(form_bp, url_prefix='/form') 
     app.register_blueprint(simulate_bp, url_prefix='/simulation')
 
     # app.register_blueprint(seeding_blueprint)
@@ -53,9 +54,5 @@ def create_app():
 
 def configure_logger(app):
     # Set up logging
-    logging.basicConfig(
-        filename='app.log',
-        level=logging.INFO,
-        format='%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
-    )
+    
     app.logger = logging.getLogger(__name__)
