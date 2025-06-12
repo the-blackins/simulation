@@ -63,11 +63,12 @@ class SimulationService:
         external_factor_data_lookup = get_cached_lookup_data(mem_factor_identifier="mem_external_factor")
         institutional_factor_data_lookup = get_cached_lookup_data(mem_factor_identifier="mem_institutional_factor")
 
-        result = []
         try:
+            result = []
             simulations = self.sim_model
             logger.info(f"Starting simulation processing for {len(simulations)} simulations.")
             for simulation in simulations:
+
                 logger.debug(f"Processing simulation ID {simulation.id} with {len(simulation.students)} students.")
                 for student in simulation.students:
                     key = (simulation.id, student.id)
@@ -110,8 +111,9 @@ class SimulationService:
                         'Student_id': student.id,
                         'score': score
                     })
-            logger.info("Completed processing all simulations.")
+            logger.info(f"Completed processing simulations id {simulation.id} for {len(result)} students.") 
             return result
+            
 
         except Exception as e:
             logger.error(f"Error processing simulation {simulation.id} for student {student.id}: {str(e)}")
