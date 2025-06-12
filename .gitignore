@@ -23,5 +23,5 @@ migrations/
 .DS_Store
 Thumbs.db
 
-# log files 
-log.lo
+# all .log files 
+*.log

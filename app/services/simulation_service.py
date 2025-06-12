@@ -45,10 +45,8 @@ class SimulationService:
     def process_factors(self, factor, factor_type, identifier):
         """Process factors if they are an InstrumentedList."""
         try:  
-            count = 0
             if factor:
                 self.sim_eng.update_single_factor(factor)
-                count += 1
                #  logger.info(f"Processed {count} {factor_type} for {identifier}")
             else:
                 logger.warning(f"No {factor_type} found for {identifier}")
@@ -67,8 +65,16 @@ class SimulationService:
             result = []
             simulations = self.sim_model
             logger.info(f"Starting simulation processing for {len(simulations)} simulations.")
+            factors = {
+                    "simulation_id": None, 
+                    "Internal_Factor": [], 
+                    "External_Factor": [], 
+                    "Institutional_Factor": []
+            }
+            avg_factors= {}
             for simulation in simulations:
-
+                
+                factors["simulation_id"] = simulation.id
                 logger.debug(f"Processing simulation ID {simulation.id} with {len(simulation.students)} students.")
                 for student in simulation.students:
                     key = (simulation.id, student.id)
@@ -78,6 +84,8 @@ class SimulationService:
                     internal_factor_looked_up_data = internal_factor_data_lookup.get(key)
                     if internal_factor_looked_up_data:
                         # logger.info(f"Processing internal factors for simulation {simulation.id}")
+                        factors['Internal_Factor'].append(self.sim_eng.calculate_factor_impact(internal_factor_looked_up_data))
+
                         self.process_factors(internal_factor_looked_up_data, "internal factors", f"internal factor {simulation.id}")
                     else:
                         logger.warning(f"No internal factors found for simulation {simulation.id}")
@@ -85,6 +93,8 @@ class SimulationService:
                     # external factors
                     external_factor_looked_up_data = external_factor_data_lookup.get(key)
                     if external_factor_looked_up_data:
+                        factors['External_Factor'].append(self.sim_eng.calculate_factor_impact(external_factor_looked_up_data))
+
                         # logger.info(f"Processing external factors for simulation {simulation.id}")
                         self.process_factors(external_factor_looked_up_data, "external factors", f"external factor {simulation.id}")
                     else:
@@ -93,6 +103,8 @@ class SimulationService:
                     # institutional factors 
                     institutional_factor_looked_up_data = institutional_factor_data_lookup.get(key)
                     if institutional_factor_looked_up_data:
+                        factors["Institutional_Factor"].append(self.sim_eng.calculate_factor_impact(institutional_factor_looked_up_data))
+
                         # logger.info(f"Processing institutional factors for simulation {simulation.id}")
                         self.process_factors(institutional_factor_looked_up_data, "institutional factors", f"institutional factor {simulation.id}")
                     else:
@@ -111,6 +123,15 @@ class SimulationService:
                         'Student_id': student.id,
                         'score': score
                     })
+                avg_factors ={
+                    "simulation_id" : factors["simulation_id"],
+                    "avg_internal_factor" : sum(factors["Internal_Factor"])/len(factors["Internal_Factor"]), 
+                    "avg_external_factor" : sum(factors["External_Factor"])/len(factors["External_Factor"]), 
+                    "avg_institutional_factor" : sum(factors["Institutional_Factor"])/len(factors["Institutional_Factor"]), 
+
+
+                }
+            result.append(avg_factors)
             logger.info(f"Completed processing simulations id {simulation.id} for {len(result)} students.") 
             return result
             
