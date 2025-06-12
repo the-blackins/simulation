@@ -54,15 +54,15 @@ def generate_internal_factors(student, simulation):
     logger.debug(f"Generating internal factors for student id: {getattr(student, 'id', 'unknown')}, simulation id: {simulation.id}")
     student.internal_factors = InternalFactors(
         simulation_id=simulation.id,
-        goal_setting=uniform(5.0, 10.0),
-        personal_ambition=uniform(5.0, 10.0),
-        interest_subject=uniform(5.0, 10.0),
-        scheduling=uniform(4.0, 9.0),
-        prioritization=uniform(4.0, 9.0),
-        consistency=uniform(4.0, 9.0),
-        study_techniques=uniform(4.0, 9.0),
-        focus_study=uniform(4.0, 9.0),
-        self_assessment=uniform(4.0, 9.0)
+        goal_setting=uniform(0.3, 0.95),
+        personal_ambition=uniform(0.5, 1.0),
+        interest_subject=uniform(0.5, 1.0),
+        scheduling=uniform(0.4, 0.9),
+        prioritization=uniform(0.4, 0.9),
+        consistency=uniform(0.4, 0.9),
+        study_techniques=uniform(0.4, 0.9),
+        focus_study=uniform(0.4, 0.9),
+        self_assessment=uniform(0.4, 0.9)
     )
     internal_factors = student.internal_factors
     # logger.info(f"Internal factors generated: {internal_factors}")
@@ -74,17 +74,17 @@ def generate_external_factors(student, simulation):
     logger.debug(f"Generating external factors for student id: {getattr(student, 'id', 'unknown')}, simulation id: {simulation.id}")
     student.external_factors = ExternalFactors(
         simulation_id=simulation.id,
-        financial_stability=uniform(4.0, 9.0),
-        access_to_resources=uniform(4.0, 9.0),
-        family_support=uniform(5.0, 10.0),
-        textbooks_availability=uniform(4.0, 9.0),
-        internet_access=uniform(4.0, 9.0),
-        lab_materials=uniform(4.0, 9.0),
-        curriculum_relevance=uniform(5.0, 9.0),
-        teaching_quality=uniform(5.0, 9.0),
-        feedback_assessment=uniform(4.0, 9.0),
-        family_expectations=uniform(5.0, 10.0)
-    )
+        financial_stability=uniform(0.4, 0.9),
+        access_to_resources=uniform(0.4, 0.9),
+        family_support=uniform(0.5, 1.0),
+        textbooks_availability=uniform(0.4, 0.9),
+        internet_access=uniform(0.4, 0.9),
+        lab_materials=uniform(0.4, 0.9),
+        curriculum_relevance=uniform(0.5, 0.9),
+        teaching_quality=uniform(0.5, 0.9),
+        feedback_assessment=uniform(0.4, 0.9),
+        family_expectations=uniform(0.5, 1.0)
+)
     external_factors = student.external_factors
     # logger.info(f"External factors generated: {external_factors}")
     return external_factors

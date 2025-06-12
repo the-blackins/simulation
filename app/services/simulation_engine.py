@@ -56,8 +56,8 @@ class SimulationEngine:
             else:
                 logger.warning("Invalid factor object provided: %s", factor)
                 return 1.0
-
-            return total / count if count > 0 else 1.0
+            # logger.info(total / (count * 10) if count > 0 else 1.0)
+            return total / (count) if count > 0 else 1.0
         except Exception as e:
             logger.error("Error calculating factor impact: %s", str(e))
             raise RuntimeError(f"error calculating factor impact: {str(e)}")
@@ -67,18 +67,23 @@ class SimulationEngine:
         try:
             external_impact = (self.calculate_factor_impact(mem_external_factors)
                                if mem_external_factors else 1.0)
-
+            logger.info(f"external_impact: {external_impact}")
             internal_impact = (self.calculate_factor_impact(mem_internal_factors)
                                if mem_internal_factors else 1.0)
+            
+            logger.info(f"internal_impact: {internal_impact}")
+            
 
             institutional_impact = (self.calculate_factor_impact(mem_institutional_factors)
                                     if mem_institutional_factors else 1.0)
+            logger.info(f"institutional_impact: {institutional_impact}")
 
             weighted_impact = (
                 external_impact * self.FACTOR_WEIGHTS['external'] +
                 internal_impact * self.FACTOR_WEIGHTS['internal'] +
                 institutional_impact * self.FACTOR_WEIGHTS['institutional']
             )
+            logger.info(weighted_impact)
 
             random_variation = random.uniform(-self.RANDOM_VARIATION, self.RANDOM_VARIATION)
             final_score = self.BASE_SCORE * weighted_impact + random_variation

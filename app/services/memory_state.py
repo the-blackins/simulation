@@ -74,7 +74,7 @@ def create_memory_state(mem_dict):
                 )
             )
 
-        logger.info("Memory state created successfully for simulation.")
+        logger.info("Memory state created successfully for wsimulation.")
         return SimulationState(
             mem_internal_factors=mem_internal_factors,
             mem_external_factors=mem_external_factors,
