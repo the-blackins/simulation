@@ -24,4 +24,4 @@ migrations/
 Thumbs.db
 
 # log files 
-*./log/logs.log
+log/logs.log
