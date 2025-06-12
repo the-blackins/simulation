@@ -22,3 +22,6 @@ migrations/
 # System files
 .DS_Store
 Thumbs.db
+
+# log files 
+*./log/logs.log
