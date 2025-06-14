@@ -125,21 +125,26 @@ def load_chart_instance():
 @simulate_bp.route('/api/run_step', methods=['POST'])
 def run_simulation_step():
     """Run the simulation based on university base (simulation)."""
-    session = Session()
+    # session = Session()
 
     try:
-        from app.services import run_simulation
+        from app.services import run_simulation, initialize_memory
+
 
         logger.debug("Retrieving simulation data from cache.")
-        simulation_data = get_cached_simulation_data()
-        if not simulation_data:
-            logger.info("Simulation cache empty. Loading from database.")
-            simulation_data = loader.load_simulation_data(session)
-            cache_simulation_data(simulation_data)
-            logger.info("Simulation data loaded from database and cached.")
-
+        # cached_simulation_data = get_cached_simulation_data()
+        # if not simulation_data:
+        #     logger.info("Simulation cache empty. Loading from database.")
+        #     simulation_data = loader.load_simulation_data(session)
+        #     cache_simulation_data(simulation_data)
+        #     logger.info("Simulation data loaded from database and cached.")
+        
+        # logger.info()
         logger.debug("Running simulation step.")
         result = run_simulation()
+        # simulation_data = initialize_memory()
+        # cache_simulation_data(simulation_data)
+        # logger.info("cached simulation data successfully updated")
 
         logger.info("Simulation step completed successfully.")
         return jsonify({
