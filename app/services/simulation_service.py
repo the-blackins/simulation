@@ -1,7 +1,7 @@
 """ Renders simulation charts to the frontend, process and run simulation """
 from sqlalchemy.orm.collections import InstrumentedList
 from .simulation_engine import SimulationEngine
-from app.services.cache import get_cached_lookup_data
+from app.services.cache import get_cached_lookup_data, cache_lookup_data
 from log.logger import logger
 
 
@@ -85,8 +85,10 @@ class SimulationService:
                     if internal_factor_looked_up_data:
                         # logger.info(f"Processing internal factors for simulation {simulation.id}")
                         factors['Internal_Factor'].append(self.sim_eng.calculate_factor_impact(internal_factor_looked_up_data))
-
+                        # logger.info(f"not modified: {internal_factor_looked_up_data}")
                         self.process_factors(internal_factor_looked_up_data, "internal factors", f"internal factor {simulation.id}")
+                        # logger.info(f"Modified: {internal_factor_looked_up_data}")
+
                     else:
                         logger.warning(f"No internal factors found for simulation {simulation.id}")
 
@@ -129,6 +131,10 @@ class SimulationService:
                     "avg_external_factor" : sum(factors["External_Factor"])/len(factors["External_Factor"]), 
                     "avg_institutional_factor" : sum(factors["Institutional_Factor"])/len(factors["Institutional_Factor"])  
                 })
+            # update cached lookup data
+            cache_lookup_data(internal_factor_data_lookup, mem_factor_identifier="mem_internal_factor")
+            cache_lookup_data(external_factor_data_lookup, mem_factor_identifier="mem_external_factor")
+            cache_lookup_data(institutional_factor_data_lookup, mem_factor_identifier="mem_institutional_factor")   
             # logger.info(factors)
             result.append(avg_factors)
             logger.info(f"Completed processing simulations id {simulation.id} for {len(result)} students.") 
