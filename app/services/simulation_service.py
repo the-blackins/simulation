@@ -71,7 +71,7 @@ class SimulationService:
                     "External_Factor": [], 
                     "Institutional_Factor": []
             }
-            avg_factors= {}
+            avg_factors= []
             for simulation in simulations:
                 
                 factors["simulation_id"] = simulation.id
@@ -123,14 +123,13 @@ class SimulationService:
                         'Student_id': student.id,
                         'score': score
                     })
-                avg_factors ={
+                avg_factors.append({
                     "simulation_id" : factors["simulation_id"],
                     "avg_internal_factor" : sum(factors["Internal_Factor"])/len(factors["Internal_Factor"]), 
                     "avg_external_factor" : sum(factors["External_Factor"])/len(factors["External_Factor"]), 
-                    "avg_institutional_factor" : sum(factors["Institutional_Factor"])/len(factors["Institutional_Factor"]), 
-
-
-                }
+                    "avg_institutional_factor" : sum(factors["Institutional_Factor"])/len(factors["Institutional_Factor"])  
+                })
+            # logger.info(factors)
             result.append(avg_factors)
             logger.info(f"Completed processing simulations id {simulation.id} for {len(result)} students.") 
             return result
