@@ -1,10 +1,10 @@
-from app import create_app
+from app import create_app, socketio
+from flask_socketio import SocketIO
 
 # Create the Flask application
 app = create_app()
 
 
-
 if __name__ == "__main__":
     print(app.config['SQLALCHEMY_DATABASE_URI'])
-    app.run(debug=True)
+    socketio.run(app=app, host="127.0.0.1", port=5000, debug=True)
