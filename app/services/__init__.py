@@ -90,6 +90,7 @@ def run_simulation():
     simulation_service = SimulationService()
     try:
         logger.info("Processing simulation...")
+        simulation_service.start_simulation_threading()
         processed_simulation = simulation_service.process_simulation()
         logger.info("Simulation run successfully.")
         return processed_simulation

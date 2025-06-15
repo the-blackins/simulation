@@ -1,9 +1,12 @@
 """ Renders simulation charts to the frontend, process and run simulation """
+import eventlet
+eventlet.monkey_patch()
 from sqlalchemy.orm.collections import InstrumentedList
 from .simulation_engine import SimulationEngine
 from app.services.cache import get_cached_lookup_data, cache_lookup_data
 from log.logger import logger
-
+import time
+from flask_socketio import emit, SocketIO
 
 class SimulationService:
     """Running simulation and its services"""
@@ -55,13 +58,13 @@ class SimulationService:
             raise RuntimeError(f"Error processing factors {str(e)}")
 
     # run simulation
-    def process_simulation(self):
+    def process_simulation(self, simulation):
         """ Process students in each simulation """
-        internal_factor_data_lookup = get_cached_lookup_data(mem_factor_identifier="mem_internal_factor")
-        external_factor_data_lookup = get_cached_lookup_data(mem_factor_identifier="mem_external_factor")
-        institutional_factor_data_lookup = get_cached_lookup_data(mem_factor_identifier="mem_institutional_factor")
-
         try:
+            internal_factor_data_lookup = get_cached_lookup_data(mem_factor_identifier="mem_internal_factor")
+            external_factor_data_lookup = get_cached_lookup_data(mem_factor_identifier="mem_external_factor")
+            institutional_factor_data_lookup = get_cached_lookup_data(mem_factor_identifier="mem_institutional_factor")
+        
             result = []
             simulations = self.sim_model
             logger.info(f"Starting simulation processing for {len(simulations)} simulations.")
@@ -72,65 +75,65 @@ class SimulationService:
                     "Institutional_Factor": []
             }
             avg_factors= []
-            for simulation in simulations:
+            # for simulation in simulations:
+            for student in simulation.students:
                 
                 factors["simulation_id"] = simulation.id
                 logger.debug(f"Processing simulation ID {simulation.id} with {len(simulation.students)} students.")
-                for student in simulation.students:
-                    key = (simulation.id, student.id)
+                key = (simulation.id, student.id)
                   #   logger.debug(f"Processing simulation {simulation.id} for student {student.id}")
 
-                    # internal factors 
-                    internal_factor_looked_up_data = internal_factor_data_lookup.get(key)
-                    if internal_factor_looked_up_data:
-                        # logger.info(f"Processing internal factors for simulation {simulation.id}")
-                        factors['Internal_Factor'].append(self.sim_eng.calculate_factor_impact(internal_factor_looked_up_data))
-                        # logger.info(f"not modified: {internal_factor_looked_up_data}")
-                        self.process_factors(internal_factor_looked_up_data, "internal factors", f"internal factor {simulation.id}")
-                        # logger.info(f"Modified: {internal_factor_looked_up_data}")
+                # internal factors 
+                internal_factor_looked_up_data = internal_factor_data_lookup.get(key)
+                if internal_factor_looked_up_data:
+                    # logger.info(f"Processing internal factors for simulation {simulation.id}")
+                    factors['Internal_Factor'].append(self.sim_eng.calculate_factor_impact(internal_factor_looked_up_data))
+                    # logger.info(f"not modified: {internal_factor_looked_up_data}")
+                    self.process_factors(internal_factor_looked_up_data, "internal factors", f"internal factor {simulation.id}")
+                    # logger.info(f"Modified: {internal_factor_looked_up_data}")
 
-                    else:
-                        logger.warning(f"No internal factors found for simulation {simulation.id}")
+                else:
+                    logger.warning(f"No internal factors found for simulation {simulation.id}")
 
-                    # external factors
-                    external_factor_looked_up_data = external_factor_data_lookup.get(key)
-                    if external_factor_looked_up_data:
-                        factors['External_Factor'].append(self.sim_eng.calculate_factor_impact(external_factor_looked_up_data))
+                # external factors
+                external_factor_looked_up_data = external_factor_data_lookup.get(key)
+                if external_factor_looked_up_data:
+                    factors['External_Factor'].append(self.sim_eng.calculate_factor_impact(external_factor_looked_up_data))
 
-                        # logger.info(f"Processing external factors for simulation {simulation.id}")
-                        self.process_factors(external_factor_looked_up_data, "external factors", f"external factor {simulation.id}")
-                    else:
-                        logger.warning(f"No external factors found for simulation {simulation.id}")
-                   
-                    # institutional factors 
-                    institutional_factor_looked_up_data = institutional_factor_data_lookup.get(key)
-                    if institutional_factor_looked_up_data:
-                        factors["Institutional_Factor"].append(self.sim_eng.calculate_factor_impact(institutional_factor_looked_up_data))
+                    # logger.info(f"Processing external factors for simulation {simulation.id}")
+                    self.process_factors(external_factor_looked_up_data, "external factors", f"external factor {simulation.id}")
+                else:
+                    logger.warning(f"No external factors found for simulation {simulation.id}")
+                
+                # institutional factors 
+                institutional_factor_looked_up_data = institutional_factor_data_lookup.get(key)
+                if institutional_factor_looked_up_data:
+                    factors["Institutional_Factor"].append(self.sim_eng.calculate_factor_impact(institutional_factor_looked_up_data))
 
-                        # logger.info(f"Processing institutional factors for simulation {simulation.id}")
-                        self.process_factors(institutional_factor_looked_up_data, "institutional factors", f"institutional factor {simulation.id}")
-                    else:
-                        logger.warning(f"No institutional factors found for simulation {simulation.id}")
+                    # logger.info(f"Processing institutional factors for simulation {simulation.id}")
+                    self.process_factors(institutional_factor_looked_up_data, "institutional factors", f"institutional factor {simulation.id}")
+                else:
+                    logger.warning(f"No institutional factors found for simulation {simulation.id}")
 
-                    # calculate score
-                    score = self.sim_eng.calculate_performance(
-                        mem_internal_factors=internal_factor_looked_up_data,
-                        mem_external_factors=external_factor_looked_up_data,
-                        mem_institutional_factors=institutional_factor_looked_up_data
-                    )
-                    logger.debug(f"Calculated score for simulation {simulation.id}, student {student.id}: {score}")
+                # calculate score
+                score = self.sim_eng.calculate_performance(
+                    mem_internal_factors=internal_factor_looked_up_data,
+                    mem_external_factors=external_factor_looked_up_data,
+                    mem_institutional_factors=institutional_factor_looked_up_data
+                )
+                logger.debug(f"Calculated score for simulation {simulation.id}, student {student.id}: {score}")
 
-                    result.append({ 
-                        'simulation_id': simulation.id, 
-                        'Student_id': student.id,
-                        'score': score
-                    })
-                avg_factors.append({
-                    "simulation_id" : factors["simulation_id"],
-                    "avg_internal_factor" : sum(factors["Internal_Factor"])/len(factors["Internal_Factor"]), 
-                    "avg_external_factor" : sum(factors["External_Factor"])/len(factors["External_Factor"]), 
-                    "avg_institutional_factor" : sum(factors["Institutional_Factor"])/len(factors["Institutional_Factor"])  
+                result.append({ 
+                    'simulation_id': simulation.id, 
+                    'Student_id': student.id,
+                    'score': score
                 })
+            avg_factors.append({
+                "simulation_id" : factors["simulation_id"],
+                "avg_internal_factor" : sum(factors["Internal_Factor"])/len(factors["Internal_Factor"]), 
+                "avg_external_factor" : sum(factors["External_Factor"])/len(factors["External_Factor"]), 
+                "avg_institutional_factor" : sum(factors["Institutional_Factor"])/len(factors["Institutional_Factor"])  
+            })
             # update cached lookup data
             cache_lookup_data(internal_factor_data_lookup, mem_factor_identifier="mem_internal_factor")
             cache_lookup_data(external_factor_data_lookup, mem_factor_identifier="mem_external_factor")
@@ -139,6 +142,8 @@ class SimulationService:
             result.append(avg_factors)
             logger.info(f"Completed processing simulations id {simulation.id} for {len(result)} students.") 
             return result
+
+
             
 
         except Exception as e:
@@ -149,3 +154,18 @@ class SimulationService:
                 'error': str(e)
             })
             raise RuntimeError(f"Error processing simulation {str(e)}")  # type: ignore
+    
+    socketio = SocketIO()
+    @socketio.on('start_simulation_threading')
+    def start_simulation_threading(self):
+        import app
+        try:
+            with app.app_context():
+                simulations = self.sim_model 
+
+                for simulation in simulations:
+                    eventlet.spawn(self.process_simulation, simulation)
+                    emit('sim_started', {'sim_id': simulation.id})
+        except:
+            logger.error(f"Error threading simulations: ", exc_info=True)
+ 
