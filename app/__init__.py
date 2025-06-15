@@ -5,18 +5,20 @@ from flask import Flask
 # from .views.seeding_view import seeding_blueprint
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
-
+from flask_socketio import SocketIO
 from .config import get_config
 # from database.setup import initialize_db
 
 db = SQLAlchemy()
 cors = CORS()
+socketio = SocketIO(cors_allowed_origins="http://localhost:5000")
 from .models import * 
 
 
 def create_app():
     # Create the Flask app instance
     app = Flask(__name__, instance_relative_config=True)
+    socketio.init_app(app)
 
     # Load configuration from config.py
     app.config.from_object(get_config())
