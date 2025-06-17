@@ -148,24 +148,11 @@ class SimulationService:
 
         except Exception as e:
             logger.error(f"Error processing simulation {simulation.id} for student {student.id}: {str(e)}")
-            result.append({  # type: ignore
+            result.append({# type: ignore
                 'simulation_id': simulation.id,  # type: ignore
                 'Student_id': student.id,
                 'error': str(e)
             })
             raise RuntimeError(f"Error processing simulation {str(e)}")  # type: ignore
     
-    socketio = SocketIO()
-    @socketio.on('start_simulation_threading')
-    def start_simulation_threading(self):
-        import app
-        try:
-            with app.app_context():
-                simulations = self.sim_model 
-
-                for simulation in simulations:
-                    eventlet.spawn(self.process_simulation, simulation)
-                    emit('sim_started', {'sim_id': simulation.id})
-        except:
-            logger.error(f"Error threading simulations: ", exc_info=True)
- 
+   

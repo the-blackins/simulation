@@ -131,10 +131,10 @@ class StudentSimulation {
         }
         
         // Run first step immediately
-        this.runSimulationStep();
+        this.runSimulationStepSpawning();
         
         // Then set up interval
-        this.simulationInterval = setInterval(() => this.runSimulationStep(), 2000);
+        // this.simulationInterval = setInterval(() => this.runSimulationStep(), 2000);
     }
 
     pauseSimulation() {
@@ -208,6 +208,39 @@ class StudentSimulation {
             if (status) status.textContent = `Status: Error - ${error.message}`;
         }
     }
+    runSimulationStepSpawning() {
+        // Connect to Socket.IO
+        const socket = io("http://127.0.0.1:5000"); 
+
+        // Emit an event to start the simulation
+        
+        socket.emit('start_simulation_spawning');
+        
+
+        // // Listen for confirmation that the simulation started
+        // socket.on('sim_started', data => {
+        //     console.log(`Simulation ${data.sim_id} started`);
+        //     displayMessage(`Simulation ${data.sim_id} started`);
+        // });
+
+        // // Listen for live updates
+        // socket.on('sim_update', data => {
+        //     console.log(`Progress: ${data.progress}`);
+        //     displayMessage(data.progress);
+        // });
+
+        // // Listen for simulation completion
+        // socket.on('sim_complete', data => {
+        //     console.log(`Simulation ${data.sim_id} complete!`);
+        //     displayMessage(`Simulation ${data.sim_id} complete!`);
+        // });
+
+        // // Helper function to show updates on the page
+        // function displayMessage(msg) {
+        //     const log = document.getElementById("log");
+        //     log.innerHTML += `<p>${msg}</p>`;
+    }
+// }
 
     updateCharts(results) {
         if (!results || !results.length) {
@@ -247,7 +280,7 @@ class StudentSimulation {
             this.performanceChart.update();
         }
     }
-} webkitURL;                                                                                                                                                  
+};                                                                                                                                                
 
 
 

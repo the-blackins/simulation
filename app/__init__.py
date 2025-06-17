@@ -1,3 +1,5 @@
+import eventlet
+eventlet.monkey_patch()
 import logging
 from log.logger import logger
 
@@ -11,7 +13,7 @@ from .config import get_config
 
 db = SQLAlchemy()
 cors = CORS()
-socketio = SocketIO(cors_allowed_origins="http://localhost:5000")
+socketio = SocketIO(cors_allowed_origins="http://localhost:5000", async_mode='eventlet')
 from .models import * 
 
 

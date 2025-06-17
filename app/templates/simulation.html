@@ -3,9 +3,21 @@
 {% block title %}Simulation{% endblock %}
 
 {% block head %}
-{{ super() }}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/simulation.css') }}">
+{% endblock %}
+
+{% block head_scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+
+<script type="text/javascript">
+    window.onload = function () {
+        console.log("Simulation page loaded");
+    }
+    // Initialize socket.io
+    // const socket = io.connect();
+    </script>
+
 {% endblock %}
 
 {% block content %}
@@ -26,6 +38,9 @@
         
     </div>
 </div>
-<script src="{{ url_for('static', type='module' ,filename='js/simulation.js') }}"></script>
 
+{% endblock %}
+
+{% block footer_scripts %}
+<script src="{{ url_for('static', type='module' ,filename='js/simulation.js') }}"></script>
 {% endblock %}

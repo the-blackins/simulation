@@ -1,3 +1,8 @@
+import eventlet
+eventlet.monkey_patch()
+from app import socketio
+
+from flask_socketio import SocketIO, emit
 import json
 import traceback
 from sqlalchemy.orm import Session
@@ -156,3 +161,21 @@ def run_simulation_step():
     except Exception as e:
         logger.exception("Error running simulation step.")
         return jsonify(f'error {str(e)}'), 500
+    
+
+@socketio.on('start_simulation_spawning')
+def start_simulation_threading():
+    import app
+    from app.services.simulation_service import SimulationService
+    try:
+        with app.app_context():
+            simulation_service = SimulationService()
+
+            simulations = simulation_service.sim_model 
+
+            for simulation in simulations:
+                eventlet.spawn(simulation_service.process_simulation, simulation)
+                emit('sim_started', {'sim_id': simulation.id})
+    except:
+        logger.error(f"Error spawning simulations: ", exc_info=True)
+
