@@ -4,12 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Simluation Application{% endblock %}</title>
+<<<<<<< HEAD
     <!-- <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script> -->
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script> -->
 
     {% block head%} <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"> {% endblock %}
     {% block head_scripts %}{% endblock %}
     
+=======
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+>>>>>>> 45ba062b4e165bf21f6271f9c35fbd8217237ea2
 </head>
 <body>
     <header>        
@@ -18,9 +24,13 @@
     <main>
         {% block content %}{% endblock %}
     </main>
+<<<<<<< HEAD
 
    
     {% block footer_scripts %}
     {% endblock %}
+=======
+   
+>>>>>>> 45ba062b4e165bf21f6271f9c35fbd8217237ea2
 </body>
 </html>
