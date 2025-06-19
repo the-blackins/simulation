@@ -13,7 +13,7 @@ from .config import get_config
 
 db = SQLAlchemy()
 cors = CORS()
-socketio = SocketIO(cors_allowed_origins="http://localhost:5000", async_mode='eventlet')
+socketio = SocketIO(cors_allowed_origins=[ "http://localhost:5000", "http://127.0.0.1:5000"], async_mode='eventlet')
 from .models import * 
 
 
