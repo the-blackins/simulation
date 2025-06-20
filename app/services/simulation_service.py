@@ -5,6 +5,8 @@ from sqlalchemy.orm.collections import InstrumentedList
 from .simulation_engine import SimulationEngine
 from app.services.cache import get_cached_lookup_data, cache_lookup_data
 from log.logger import logger
+from sqlalchemy.orm import joinedload
+
 import time
 from flask_socketio import emit, SocketIO
 
@@ -15,7 +17,7 @@ class SimulationService:
         from app.models import Simulation, Student
         from app import db
         self.sim_eng = SimulationEngine()
-        self.sim_model = (db.session.query(Simulation).join(Simulation.students).order_by(Simulation.id)).all()
+        self.sim_model = (db.session.query(Simulation).options(joinedload(Simulation.students)).join(Simulation.students).order_by(Simulation.id)).all()
         self.student_model = Student.query.all()
         logger.info("SimulationService initialized with simulation and student models.")
  
@@ -64,10 +66,9 @@ class SimulationService:
             internal_factor_data_lookup = get_cached_lookup_data(mem_factor_identifier="mem_internal_factor")
             external_factor_data_lookup = get_cached_lookup_data(mem_factor_identifier="mem_external_factor")
             institutional_factor_data_lookup = get_cached_lookup_data(mem_factor_identifier="mem_institutional_factor")
-        
+
             result = []
-            simulations = self.sim_model
-            logger.info(f"Starting simulation processing for {len(simulations)} simulations.")
+            # simulations = self.sim_model
             factors = {
                     "simulation_id": None, 
                     "Internal_Factor": [], 
@@ -76,10 +77,11 @@ class SimulationService:
             }
             avg_factors= []
             # for simulation in simulations:
+
             for student in simulation.students:
-                
+                # logger.info(f"Processing student {student.id} in simulation {simulation.id}")
                 factors["simulation_id"] = simulation.id
-                logger.debug(f"Processing simulation ID {simulation.id} with {len(simulation.students)} students.")
+
                 key = (simulation.id, student.id)
                   #   logger.debug(f"Processing simulation {simulation.id} for student {student.id}")
 
